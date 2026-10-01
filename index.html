@@ -1,0 +1,780 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>부락 2026 내 시간표</title>
+<meta name="description" content="2026 부산국제록페스티벌(10.2–10.4 삼락생태공원) 타임테이블에서 볼 무대를 골라 잠금화면 배경화면으로 저장하고, 친구와 링크로 픽을 맞춰 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="부락 2026 내 시간표">
+<meta property="og:description" content="타임테이블에서 볼 무대 고르기 · 잠금화면 배경화면 저장 · 친구랑 픽 맞추기 · 먹거리·부스 정보">
+<meta property="og:url" content="https://onyoupado.github.io/burock2026/">
+<meta property="og:image" content="https://onyoupado.github.io/burock2026/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#16213a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+
+/* Layout: wristband day switch → timetable grid as the main surface (5 stage columns, sticky stage row + time axis) → my picks → wallpaper. */
+:root{
+  --paper:#e9edf2; --card:#f7f9fb; --ink:#16213a; --muted:#5b6479; --line:#c9d0dc;
+  --pink:#e8307a; --pink-soft:#fbe1ec; --gold:#f2b705; --ok:#1f7a55; --warn:#a15c00; --on-pink:#ffffff;
+  /* stage colours, after the official timetable */
+  --s-samrock:#ffe98a; --s-green:#b9f08a; --s-river:#ffb8d4; --s-wave:#93e3ee; --s-hidden:#d2c4fb;
+  --f-display:"Black Han Sans","IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --ground:#d6efe5; --grass:#9fd8bd; --path2:#ffffff; --food:#ffcf9b; --mk:#16213a; --river:#a9d6ea; --grid:rgba(22,33,58,.09); --s-hl:#f2b705;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0f1628;--card:#18213a;--ink:#e8ecf4;--muted:#9aa4bb;--line:#2c3856;
+  --pink:#ff4f93;--pink-soft:#3a1a33;--gold:#f5c33b;--ok:#4fc08d;--warn:#f0a44a;--on-pink:#16213a;
+  --s-samrock:#5a4c10;--s-green:#2d5719;--s-river:#6b2447;--s-wave:#11525b;--s-hidden:#3e3370;--ground:#16332e;--grass:#1f4c40;--path2:#2b5a50;--food:#6b4116;--mk:#e8ecf4;--river:#1d3f5c;--grid:rgba(232,236,244,.08);--s-hl:#f5c33b;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1628;--card:#18213a;--ink:#e8ecf4;--muted:#9aa4bb;--line:#2c3856;
+  --pink:#ff4f93;--pink-soft:#3a1a33;--gold:#f5c33b;--ok:#4fc08d;--warn:#f0a44a;--on-pink:#16213a;
+  --s-samrock:#5a4c10;--s-green:#2d5719;--s-river:#6b2447;--s-wave:#11525b;--s-hidden:#3e3370;--ground:#16332e;--grass:#1f4c40;--path2:#2b5a50;--food:#6b4116;--mk:#e8ecf4;--river:#1d3f5c;--grid:rgba(232,236,244,.08);--s-hl:#f5c33b;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:820px;margin:0 auto;padding-inline:16px;padding-block:20px 96px}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+header.top{display:grid;gap:6px;padding-block:8px 14px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(34px,9vw,56px);line-height:1;margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1 em{font-style:normal;color:var(--pink)}
+.sub{color:var(--muted);margin:0}
+.dday{font-family:var(--f-mono);font-weight:600;font-size:13px;background:var(--ink);color:var(--paper);padding:4px 10px;border-radius:3px;width:max-content}
+
+.band{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-block:10px 4px}
+.band button{border:2px solid var(--ink);background:transparent;padding:10px 6px 8px;border-radius:4px;cursor:pointer;text-align:left;display:grid;gap:2px;position:relative;min-width:0}
+.band button b{font-family:var(--f-display);font-weight:400;font-size:20px;line-height:1}
+.band button span{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.band button small{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.band button[aria-pressed="true"]{background:var(--pink);border-color:var(--pink);color:var(--on-pink)}
+.band button[aria-pressed="true"] span{color:inherit;opacity:.85}
+.band button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.band .cnt{position:absolute;top:-9px;right:6px;font-family:var(--f-mono);font-size:11px;font-weight:600;background:var(--pink);color:var(--on-pink);border-radius:999px;padding:0 7px;line-height:18px}
+.band button[aria-pressed="true"] .cnt{background:var(--ink);color:var(--paper);opacity:1}
+
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--paper);display:flex;gap:4px;overflow-x:auto;padding-block:10px;border-bottom:1px solid var(--line);scrollbar-width:none}
+nav.tabs button{flex:0 0 auto;border:0;background:transparent;padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:500;color:var(--muted)}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+
+section.panel{padding-block:16px;display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+section.panel>*{min-width:0}
+h2{font-family:var(--f-display);font-weight:400;font-size:24px;margin:0;line-height:1.15}
+h3{font-size:15px;margin:0}
+.note{font-size:13.5px;color:var(--muted);margin:0}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.toolbar input{flex:1 1 180px;min-width:0;border:1.5px solid var(--line);background:var(--card);border-radius:6px;padding:9px 12px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13.5px}
+.seg button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+
+/* timetable grid */
+.tt-scroll{overflow:auto;max-height:72vh;border:1.5px solid var(--ink);border-radius:8px;background:var(--card);overscroll-behavior:contain}
+.tt{position:relative;display:grid;grid-template-columns:44px repeat(5,minmax(118px,1fr));min-width:640px}
+.tt-head{position:sticky;top:0;z-index:3;display:contents}
+.tt-head>div{position:sticky;top:0;z-index:3;padding:8px 4px 6px;text-align:center;font-family:var(--f-display);font-size:15px;letter-spacing:.02em;border-bottom:1.5px solid var(--ink);line-height:1.1}
+.tt-head>div small{display:block;font-family:var(--f-mono);font-size:10px;letter-spacing:.06em}
+.tt-head .corner{left:0;z-index:4;background:var(--card)}
+.axis{position:sticky;left:0;z-index:2;background:var(--card);border-right:1px solid var(--line)}
+.axis span{position:absolute;right:6px;font-family:var(--f-mono);font-size:11px;color:var(--muted);transform:translateY(-50%)}
+.col{position:relative;border-right:1px solid var(--line)}
+.col:last-child{border-right:0}
+.hr{position:absolute;left:0;right:0;border-top:1px dashed var(--line)}
+.blk{position:absolute;left:4px;right:4px;border-radius:6px;padding:4px 6px;cursor:pointer;border:1.5px solid transparent;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden;color:var(--ink)}
+.blk b{font-size:13px;line-height:1.15;font-weight:700;overflow-wrap:anywhere}
+.blk i{font-style:normal;font-family:var(--f-mono);font-size:10.5px;opacity:.85}
+.blk.hl b{font-family:var(--f-display);font-weight:400;font-size:15px;letter-spacing:.02em}
+.blk.ev{border-style:dashed;border-color:var(--muted)}
+.blk.on{border:2.5px solid var(--ink);box-shadow:0 0 0 2px var(--paper) inset}
+.blk.on::after{content:"★";position:absolute;top:2px;right:5px;font-size:12px;color:var(--pink)}
+.blk.dim{opacity:.28}
+.blk .frd{display:flex;gap:2px;flex-wrap:wrap}
+.blk .frd em{font-style:normal;font-size:9.5px;background:var(--ink);color:var(--paper);border-radius:3px;padding:0 3px}
+.nowline{position:absolute;left:44px;right:0;border-top:2px solid var(--pink);z-index:2;pointer-events:none}
+.nowline span{position:absolute;left:0;top:-10px;background:var(--pink);color:var(--on-pink);font-family:var(--f-mono);font-size:10px;padding:0 4px;border-radius:2px}
+.st-samrock{background:var(--s-samrock)}.st-green{background:var(--s-green)}.st-river{background:var(--s-river)}.st-wave{background:var(--s-wave)}.st-hidden{background:var(--s-hidden)}
+.gate{grid-column:1/-1;text-align:center;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;background:var(--ink);color:var(--paper);padding:4px}
+
+/* list view */
+ol.list{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line)}
+.star{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);cursor:pointer;font-size:18px;line-height:1;display:grid;place-items:center;color:var(--muted)}
+.star[aria-pressed="true"]{background:var(--pink);border-color:var(--pink);color:var(--on-pink)}
+.nm{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.meta{font-family:var(--f-mono);font-size:12px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px}
+.pill{font-family:var(--f-mono);font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;color:var(--ink);letter-spacing:.03em}
+.tag{font-family:var(--f-mono);font-size:11px;padding:1px 6px;border-radius:3px;border:1px solid currentColor}
+.tag.hl{color:var(--pink)} .tag.fr{color:var(--ok)}
+.ig{font-size:13px;text-decoration:none;border:1.5px solid var(--ink);border-radius:999px;padding:5px 10px;white-space:nowrap;font-weight:500}
+.ig.chk{border-style:dashed}
+.ig.srch{border-color:var(--line);color:var(--muted)}
+
+/* sheet */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:2px solid var(--ink);padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:10px;max-width:820px;margin:0 auto;border-radius:14px 14px 0 0;box-shadow:0 -8px 24px rgba(0,0,0,.18)}
+.sheet h3{font-family:var(--f-display);font-weight:400;font-size:24px;line-height:1.1}
+.sheet .x{position:absolute;top:10px;right:12px;border:0;background:none;font-size:22px;cursor:pointer;color:var(--muted)}
+
+/* my timetable */
+.mine{display:grid;gap:0}
+.pick{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 2px;border-bottom:1px solid var(--line)}
+.pick .tm{font-family:var(--f-mono);font-weight:600;font-size:15px;line-height:1.2;text-align:right;min-width:52px}
+.pick .tm small{display:block;font-size:11.5px;color:var(--muted);font-weight:500}
+.pick.clash{box-shadow:inset 3px 0 0 var(--warn)}
+.gap{font-size:12.5px;color:var(--muted);padding:6px 2px 6px 66px;border-bottom:1px solid var(--line);font-family:var(--f-mono)}
+.gap.bad{color:var(--warn);font-weight:600}
+.empty{border:1.5px dashed var(--line);border-radius:8px;padding:18px;text-align:center;color:var(--muted)}
+.btn{border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:6px;padding:10px 14px;cursor:pointer;font-weight:600}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.pink{background:var(--pink);border-color:var(--pink);color:var(--on-pink)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.tiny{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;text-decoration:underline;padding:0}
+
+/* wallpaper */
+.wp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:620px){.wp{grid-template-columns:1fr}}
+.wp-prev{display:grid;justify-items:center;gap:8px}
+.wp-prev img{width:100%;max-width:300px;border-radius:22px;border:6px solid var(--ink);background:var(--card);aspect-ratio:1170/2532;object-fit:cover}
+.opts{display:grid;gap:12px}
+.opt{display:grid;gap:6px}
+.opt>span{font-size:12.5px;font-family:var(--f-mono);color:var(--muted)}
+.opt input{border:1.5px solid var(--line);background:var(--card);border-radius:6px;padding:9px 10px}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.grid2{grid-template-columns:1fr}}
+.box{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;display:grid;gap:6px;align-content:start}
+.box dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:14px}
+.box dt{color:var(--muted);font-family:var(--f-mono);font-size:12px;padding-top:2px}
+.box dd{margin:0;min-width:0}
+.src{font-size:12.5px;color:var(--muted)} .src a{color:var(--muted)}
+.links{display:flex;flex-wrap:wrap;gap:6px}
+.links a{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:5px 10px;text-decoration:none;background:var(--card)}
+textarea{border:1.5px solid var(--line);background:var(--card);border-radius:6px;padding:10px;width:100%;min-height:70px;font-family:var(--f-mono);font-size:13px}
+.code{font-family:var(--f-mono);font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px;overflow-wrap:anywhere;user-select:all}
+.fr-list{display:grid;gap:8px}
+.chip{display:inline-block;font-size:12.5px;padding:2px 8px;border-radius:999px;background:var(--pink-soft);margin:2px 4px 2px 0}
+.warnline{font-size:13px;color:var(--warn);margin:0}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:6px;font-size:14px;z-index:20;max-width:calc(100% - 32px)}
+footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:grid;gap:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+html,body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+.banner{background:var(--ink);color:var(--paper);border-radius:8px;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:14px}
+.banner b{color:var(--gold)}
+.banner .btn{background:var(--pink);border-color:var(--pink);color:var(--on-pink);padding:6px 12px}
+.vendor{display:grid;gap:4px;padding:12px 2px;border-bottom:1px solid var(--line)}
+.vendor h3{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.vendor h3 small{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);font-weight:500}
+.menu{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:14px}
+.menu span:nth-child(even){font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+.group-h{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;padding-top:10px}
+.callout{border-left:4px solid var(--pink);background:var(--card);padding:10px 12px;border-radius:0 6px 6px 0;font-size:14px}
+.prog{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);align-items:start}
+.prog .tm{font-family:var(--f-mono);font-weight:600;font-size:13.5px;min-width:96px;font-variant-numeric:tabular-nums}
+.prog .now{color:var(--pink)}
+.prog p{margin:2px 0 0;font-size:13.5px;color:var(--muted)}
+.zone{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.zone dt{font-weight:700}
+.zone dd{margin:0;color:var(--muted)}
+.linkbox{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.linkbox .code{flex:1 1 220px;min-width:0}
+.mapwrap{background:var(--card);border:1.5px solid var(--ink);border-radius:12px;padding:4px;max-width:600px;width:100%;margin-inline:auto}
+.mapwrap svg{display:block;width:100%;height:auto;border-radius:9px;background:var(--card)}
+.mstl{font-family:var(--f-display);fill:var(--mk);paint-order:stroke;stroke:var(--card);stroke-width:4px;stroke-linejoin:round;letter-spacing:.02em}
+.mstand{font:600 10.5px var(--f-mono);fill:var(--ink);opacity:.7;letter-spacing:.08em}
+.msub{font:500 13px var(--f-body);fill:var(--muted);paint-order:stroke;stroke:var(--card);stroke-width:3px}
+.mtag text{font:600 12px var(--f-body);fill:var(--pink)}
+.mstage{cursor:pointer}.mstage:hover>rect:first-child,.mstage:focus>rect:first-child{stroke:var(--pink);stroke-width:4}
+.mstage:focus{outline:none}
+.mpin{cursor:pointer}.mpin.dim{opacity:.15}
+.mleg{gap:5px}.mleg button{font-size:12.5px;padding:4px 10px 4px 5px;display:inline-flex;align-items:center;gap:5px}.mleg button small{font-family:var(--f-mono);opacity:.7}
+.maplink{display:flex;justify-content:space-between;align-items:center;gap:12px;text-decoration:none;background:var(--ink);color:var(--paper);border-radius:10px;padding:14px 16px}
+.maplink span:first-child{display:grid;gap:2px}.maplink small{opacity:.75;font-size:12.5px}.maplink span:last-child{font-size:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Busan International Rock Festival · 삼락생태공원</span>
+    <h1>부락 <em>2026</em><br>내 시간표</h1>
+    <p class="sub">볼 무대를 눌러 담고, 무대·시간이 들어간 잠금화면으로 저장하고, 링크로 친구랑 픽을 맞춰요.</p>
+    <span class="dday" id="dday"></span>
+  </header>
+
+  <div class="banner" id="fr-banner" hidden></div>
+
+  <div class="band" role="group" aria-label="날짜 선택" id="band"></div>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="tt" aria-selected="true">타임테이블</button>
+    <button role="tab" data-tab="mine" aria-selected="false">내 시간표</button>
+    <button role="tab" data-tab="wall" aria-selected="false">배경화면</button>
+    <button role="tab" data-tab="food" aria-selected="false">먹거리·주류</button>
+    <button role="tab" data-tab="fun" aria-selected="false">즐길거리</button>
+    <button role="tab" data-tab="info" aria-selected="false">지도·현장</button>
+    <button role="tab" data-tab="friends" aria-selected="false">친구 공유</button>
+  </nav>
+
+  <!-- TIMETABLE -->
+  <section class="panel" id="p-tt" role="tabpanel">
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="아티스트 검색 (예: 잔나비, MEGADETH)" aria-label="아티스트 검색">
+      <div class="seg" id="view"><button data-v="grid" aria-pressed="true">격자</button><button data-v="list" aria-pressed="false">시간순 목록</button></div>
+    </div>
+    <div id="tt-wrap"></div>
+    <p class="note">무대를 누르면 ★로 담을 수 있고 인스타그램으로 갈 수 있어요. GATE OPEN 10:00. HIDDEN 스테이지는 티켓 없이 들어가는 무료 구역이고, 점선 칸은 관객 참여 이벤트예요.</p>
+  </section>
+
+  <!-- MINE -->
+  <section class="panel" id="p-mine" role="tabpanel" hidden>
+    <h2 id="mine-h"></h2>
+    <div class="mine" id="mine"></div>
+  </section>
+
+  <!-- WALLPAPER -->
+  <section class="panel" id="p-wall" role="tabpanel" hidden>
+    <h2>잠금화면 배경화면</h2>
+    <div class="wp">
+      <div class="wp-prev">
+        <img id="wp-img" alt="배경화면 미리보기">
+        <p class="note">저장 버튼이 안 되면 이미지를 길게 눌러 ‘사진에 저장’하세요.</p>
+      </div>
+      <div class="opts">
+        <div class="opt"><span>날짜</span><div class="seg" id="wp-day"></div></div>
+        <div class="opt"><span>구성</span><div class="seg" id="wp-mode"></div></div>
+        <div class="opt"><span>테마</span><div class="seg" id="wp-theme"></div></div>
+        <div class="opt"><span>기종 (px)</span><div class="seg" id="wp-size"></div></div>
+        <label class="opt" for="wp-memo"><span>한 줄 메모 (만날 곳, 같이 가는 사람)</span><input id="wp-memo" maxlength="36" placeholder="예: 헤드라이너 끝나고 매표소 앞"></label>
+        <div class="btnrow"><button class="btn pink" id="wp-save">PNG로 저장</button></div>
+        <p class="note">잠금화면 시계와 하단 버튼 자리는 비우고 가운데에만 정보를 넣었어요. 고른 무대가 없으면 그날 헤드라이너만 들어가요.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOD -->
+  <section class="panel" id="p-food" role="tabpanel" hidden>
+    <h2>먹거리·주류</h2>
+    <div class="callout"><b>토스 페이스페이</b>로 푸드라운지·MD 부스에서 결제하면 5,000원 할인 + 결제 금액 3% 토스포인트 (1인 1회, 매일 선착순, 토스페이머니·계좌 결제 수단 설정 필요)</div>
+    <div class="toolbar"><input id="fq" type="search" placeholder="메뉴 검색 (예: 떡볶이, 하이볼, 비건)" aria-label="메뉴 검색"></div>
+    <div id="food"></div>
+    <p class="src">메뉴·가격: <a href="https://busanrockfestival.com/notice/2026notice_32/" target="_blank" rel="noopener">F&amp;B 안내</a> · <a href="https://busanrockfestival.com/notice/2026notice_22/" target="_blank" rel="noopener">칭따오</a> · <a href="https://busanrockfestival.com/notice/2026notice_30/" target="_blank" rel="noopener">대선</a> · <a href="https://busanrockfestival.com/notice/2026notice_31/" target="_blank" rel="noopener">몬스터</a> · <a href="https://busanrockfestival.com/notice/2026notice_21/" target="_blank" rel="noopener">제임슨</a> · <a href="https://busanrockfestival.com/notice/2026notice_20/" target="_blank" rel="noopener">토스</a>. 현장에서 바뀔 수 있어요.</p>
+  </section>
+
+  <!-- FUN -->
+  <section class="panel" id="p-fun" role="tabpanel" hidden>
+    <h2 id="fun-h">HIDDEN 스테이지 액티비티</h2>
+    <p class="note">HIDDEN 스테이지(무료 구역)에서 누구나 참여할 수 있어요.</p>
+    <div id="fun"></div>
+    <h2>부스·체험</h2>
+    <div class="grid2" id="booths"></div>
+    <h2>부롱나이트 (애프터 파티)</h2>
+    <div class="box">
+      <dl>
+        <dt>일시</dt><dd>10/2(금)~10/4(일) 매일 23:00~02:00</dd>
+        <dt>장소</dt><dd>KT&amp;G 상상마당 부산, 사상인디스테이션</dd>
+        <dt>티켓</dt><dd>현장 판매 · 일반 15,000원 / 부락 관람객 10,000원 · 선착순 비지정석</dd>
+        <dt>입장</dt><dd>만 19세 이상, 신분증 필수</dd>
+        <dt>출연</dt><dd>더 바스타즈, 서울부인, 로맨틱펀치, Chivan, ddbb, 이츠, GOODMOOD, 시너가렛, 까치산, 더비, HOA, hathaw9y, 사운드마켓, 루츠리딤, 신인류, 정수민, 매기스가든, 타이거디스코</dd>
+      </dl>
+      <p class="src">날짜별 출연 순서는 <a href="https://busanrockfestival.com/notice/2026notice_17/" target="_blank" rel="noopener">부롱나이트 공지</a> 이미지에서 확인하세요.</p>
+    </div>
+  </section>
+
+  <!-- INFO -->
+  <section class="panel" id="p-info" role="tabpanel" hidden>
+    <h2>행사장 지도</h2>
+    <a class="maplink" href="https://busanrockfestival.com/notice/2026notice_19/" target="_blank" rel="noopener"><span><b>공식 행사장 가이드맵 보기</b><small>부산국제록페스티벌 공식 홈페이지로 이동해요</small></span><span aria-hidden="true">↗</span></a>
+    <h3 style="margin-top:4px">시설 찾기 지도</h3>
+    <p class="note">아이콘을 누르면 이름이 떠요. 아래 버튼으로 화장실·흡연구역 같은 시설만 골라 보고, 스테이지를 누르면 그 무대 타임테이블로 가요.</p>
+    <div class="seg mleg" id="map-legend"></div>
+    <div class="mapwrap" id="map"></div>
+    <p class="src">공식 가이드맵의 배치를 보고 다시 그린 안내도예요. 거리와 크기는 실제와 달라요. 현장 표지판을 함께 보세요.</p>
+    <div class="box">
+      <dl class="zone">
+        <dt>MAIN GATE</dt><dd>북쪽. 매표소·종합안내소 옆. 최초 입장과 재입장 줄이 따로 있어요</dd>
+        <dt>WAVE</dt><dd>메인 게이트 바로 왼쪽</dd>
+        <dt>SAMROCK</dt><dd>게이트 안쪽 가운데 (헤드라이너 무대)</dd>
+        <dt>GREEN</dt><dd>북동쪽 끝</dd>
+        <dt>FOOD LOUNGE</dt><dd>동쪽에 2곳 (SAMROCK·GREEN 아래), 주류 부스 함께</dd>
+        <dt>HIDDEN</dt><dd>서쪽 무료 구역. 삼락테마파크·로부락존 인근</dd>
+        <dt>RIVER</dt><dd>남쪽 끝. 칭따오-락 부스</dd>
+        <dt>MD BOOTH</dt><dd>서쪽, 물품보관소·셔틀 승하차장 근처</dd>
+        <dt>가운데 광장</dt><dd>종합안내, 글로벌 지원, 보조배터리, 키즈존</dd>
+      </dl>
+    </div>
+
+    <h2>굿즈</h2>
+    <div class="grid2">
+      <div class="box">
+        <h3>공식 MD</h3>
+        <dl>
+          <dt>협업</dt><dd><a href="https://www.instagram.com/thisisneverthat/" target="_blank" rel="noopener">디스이즈네버댓</a> · <a href="https://www.instagram.com/songwol__official/" target="_blank" rel="noopener">송월타올</a> · <a href="https://www.instagram.com/umbrokorea/" target="_blank" rel="noopener">엄브로</a></dd>
+          <dt>사전예약</dt><dd>9/18~9/23 퀸즈스마일 (마감)</dd>
+          <dt>현장 수령</dt><dd>10/2(금) 10:00 ~ 10/4(일) 22:00, QR</dd>
+          <dt>주의</dt><dd>선착순·한정 수량</dd>
+        </dl>
+        <p class="src"><a href="https://busanrockfestival.com/notice/2026notice_15/" target="_blank" rel="noopener">공식 MD 안내</a></p>
+      </div>
+      <div class="box">
+        <h3>아티스트 MD</h3>
+        <dl>
+          <dt>구매</dt><dd>현장 아티스트 MD 부스, 사전예약 없음</dd>
+          <dt>규칙</dt><dd><b>출연하는 날에만</b> 그 아티스트 MD 판매</dd>
+          <dt>품목</dt><dd>공식 인스타 프로필 링크에서 미리 보기 (모바일 전용)</dd>
+          <dt>예시</dt><dd>극동아시아타이거즈 김치전 호랑이 티셔츠 30,000원~</dd>
+        </dl>
+        <p class="src"><a href="https://linktr.ee/busanrockfest" target="_blank" rel="noopener">프로필 링크</a> · <a href="https://busanrockfestival.com/notice/2026notice_35/" target="_blank" rel="noopener">아티스트 MD 안내</a></p>
+      </div>
+    </div>
+
+    <h2>오고 가기</h2>
+    <div class="grid2">
+      <div class="box">
+        <h3>사상역 순환 셔틀 (무료)</h3>
+        <dl>
+          <dt>정류장</dt><dd>사상역(2호선) 3번 출구 인근 ↔ 삼락생태공원 굴다리 인근</dd>
+          <dt>운행</dt><dd>09:30 사상역 첫차 ~ 23:00 공원 막차</dd>
+          <dt>간격</dt><dd>5~10분 · 약 5~10분 소요 · 선착순</dd>
+        </dl>
+        <p class="src"><a href="https://busanrockfestival.com/notice/2026notice_33/" target="_blank" rel="noopener">셔틀 안내</a> · 2호선 증편·막차: <a href="https://busanrockfestival.com/notice/2026notice_29/" target="_blank" rel="noopener">지하철 증편 안내</a></p>
+      </div>
+      <div class="box">
+        <h3>물품보관소</h3>
+        <dl>
+          <dt>운영</dt><dd>매일 09:00~23:00</dd>
+          <dt>요금</dt><dd>일반 6,000원 · 큰 짐 10,000원 · 재보관 3,000원</dd>
+          <dt>결제</dt><dd>카드 · 현금 · 계좌이체</dd>
+        </dl>
+        <p class="src"><a href="https://busanrockfestival.com/notice/2026notice_18/" target="_blank" rel="noopener">물품보관소 안내</a></p>
+      </div>
+      <div class="box">
+        <h3>가로공원 맛집골목</h3>
+        <p class="note" style="color:var(--ink)">손목밴드를 차고 ‘가로공원’ 깃발이 달린 가게에 가면 혜택이 있어요. 가게마다 혜택이 달라요.</p>
+        <p class="src"><a href="https://busanrockfestival.com/notice/2026notice_26/" target="_blank" rel="noopener">맛집골목 안내</a> · <a href="https://www.instagram.com/sasang_delicious_store/" target="_blank" rel="noopener">@sasang_delicious_store</a></p>
+      </div>
+      <div class="box">
+        <h3>접근성</h3>
+        <p class="note" style="color:var(--ink)">우정원정대와 함께 만든 접근성 안내가 있어요. 배리어프리존은 SAMROCK 앞·RIVER 옆 등에 있어요.</p>
+        <p class="src"><a href="https://busanrockfestival.com/notice/2026notice_28/" target="_blank" rel="noopener">접근성 안내</a> · <a href="https://busanrockfestival.com/notice/2026notice_34/" target="_blank" rel="noopener">글로벌 지원 부스</a></p>
+      </div>
+    </div>
+    <div class="links">
+      <a href="https://busanrockfestival.com/TIMETABLE" target="_blank" rel="noopener">공식 타임테이블</a>
+      <a href="https://busanrockfestival.com/CAMPING" target="_blank" rel="noopener">캠핑</a>
+      <a href="https://busanrockfestival.com/PLAYLIST-AppleMusic" target="_blank" rel="noopener">공식 플레이리스트</a>
+      <a href="https://www.instagram.com/busanrockfest/" target="_blank" rel="noopener">@busanrockfest</a>
+      <a href="https://busanrockfestival.com/notice/" target="_blank" rel="noopener">공식 공지 전체</a>
+    </div>
+    <p class="note">문의: 국번 없이 <span style="user-select:all">1877-1328</span> · MD 문의 카카오톡 채널 ‘퀸즈스마일’</p>
+  </section>
+
+  <!-- FRIENDS -->
+  <section class="panel" id="p-friends" role="tabpanel" hidden>
+    <h2>친구랑 픽 맞추기</h2>
+    <p class="note">내 픽이 담긴 링크를 보내면, 친구가 열었을 때 타임테이블에 내 이름이 같이 떠요. 친구도 자기 링크를 보내 주면 서로 겹치는 무대를 볼 수 있어요. 로그인도 서버도 없어요.</p>
+    <div class="box">
+      <label class="opt" for="my-name"><span>내 이름 (친구 화면에 보일 이름)</span><input id="my-name" maxlength="10" placeholder="예: 유람" style="border:1.5px solid var(--line);background:var(--paper);border-radius:6px;padding:9px 10px"></label>
+      <div id="link-area" hidden>
+        <h3 style="margin-top:6px">내 공유 링크</h3>
+        <div class="linkbox"><div class="code" id="my-link"></div></div>
+        <div class="btnrow" style="margin-top:8px"><button class="btn pink" id="share-link">링크 보내기</button><button class="btn ghost" id="copy-link">링크 복사</button></div>
+      </div>
+      <h3 style="margin-top:6px">내 코드</h3>
+      <div class="code" id="my-code"></div>
+      <div class="btnrow"><button class="btn ghost" id="copy-code">코드와 내 시간표 복사</button></div>
+    </div>
+    <div class="box">
+      <h3>친구 링크·코드 넣기</h3>
+      <textarea id="fr-in" placeholder="친구가 보낸 링크나 메시지를 통째로 붙여 넣어도 돼요"></textarea>
+      <div class="btnrow"><button class="btn pink" id="fr-add">불러오기</button></div>
+      <p class="warnline" id="fr-err" hidden></p>
+    </div>
+    <div class="fr-list" id="fr-list"></div>
+  </section>
+
+  <footer>
+    <span>정보 기준: 부산국제록페스티벌 공식 홈페이지 TIMETABLE·LINEUP·공지 (2026. 10. 1. 확인). 현장 사정으로 바뀔 수 있으니 출발 전 <a href="https://www.instagram.com/busanrockfest/" target="_blank" rel="noopener">공식 인스타그램</a>을 확인하세요.</span>
+    <span>아티스트 인스타그램: 실선 = 공식 라인업 게시물·공지에 태그된 계정, 점선 = 웹 검색으로 찾은 계정(2차 라인업 등), ‘검색’ = 계정 미확인.</span>
+    <span>팬이 만든 비공식 플래너예요. 내 픽과 메모는 각자 기기 브라우저에만 저장돼요.</span>
+  </footer>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-label="무대 정보"></div>
+<div class="toast" id="toast" hidden></div>
+<canvas id="cv" hidden></canvas>
+<script>
+
+/* ---------- official timetable (images from busanrockfestival.com/TIMETABLE) ---------- */
+const STAGES=[
+ {k:'samrock',name:'SAMROCK',c:'#ffe98a'},
+ {k:'green',name:'GREEN',c:'#b9f08a'},
+ {k:'river',name:'RIVER',c:'#ffb8d4'},
+ {k:'wave',name:'WAVE',c:'#93e3ee'},
+ {k:'hidden',name:'HIDDEN',c:'#d2c4fb',free:true}];
+/* name|start|end|note ; '*' before name = HIDDEN EVENT (not an artist) */
+const TT={
+1:{date:'2026-10-02',label:'10.2 금',en:'FRI',
+ samrock:'다다다|12:00|12:30;정우|13:00|13:30;KARDI|14:00|14:40;로맨틱펀치|15:20|16:00;브로콜리너마저|16:50|17:40;CreepHyp|18:30|19:30;AVENGED SEVENFOLD|20:40|22:00',
+ green:'Tokai|11:30|12:00;hathaw9y|12:30|13:00;리도어|13:30|14:00;LUCKLIFE|14:40|15:20;Xdinary Heroes|16:00|16:50;장범준|17:40|18:30;이승윤|19:30|20:30',
+ river:'hrtz.wav|11:40|12:10;DYGL|12:40|13:10;공원|13:40|14:20;한요한|14:50|15:30;Elephant Gym|16:00|16:40|Taipei Music Center’s PICK;페퍼톤스|17:10|18:00;N.Flying|18:40|19:40',
+ wave:'D82|11:30|12:00;산보|12:30|13:00;HOA|13:30|14:00;밴드기린|14:40|15:20;알레프|16:00|16:50;강산에|17:40|18:30;J.E.B|19:30|20:20|DANCING WAVE',
+ hidden:'노아코스트|13:20|13:50;블낫블|14:10|14:40;퓨처피어클럽|15:00|15:30;아스라이|15:50|16:20;나타샤|16:40|17:10;*부락 대운동회|17:40|18:20|HIDDEN EVENT;*부락 노래자랑|18:30|19:20|HIDDEN EVENT'},
+2:{date:'2026-10-03',label:'10.3 토',en:'SAT',
+ samrock:'Wah Wah Wah|12:00|12:30;신인류|13:00|13:30;SPACEY JANE|14:00|14:40;WOODZ|15:20|16:00;터치드|16:50|17:40;잔나비|18:30|19:30;MEGADETH|20:40|22:00',
+ green:'프랭클리|11:30|12:00;캔트비블루|12:30|13:00;스카웨이커스|13:30|14:00;브로큰 발렌타인|14:40|15:20;ADOY|16:00|16:50;IDIOTAPE|17:40|18:30;Suchmos|19:30|20:30',
+ river:'야자수|11:40|12:10;이츠|12:40|13:10;고고학|13:40|14:20;오월오일|14:50|15:30;윤마치|16:00|16:40;권진아|17:10|18:00;Henry Moodie|18:40|19:40',
+ wave:'단감자|11:30|12:00|SangSangMadang’s PICK;Chivan|12:30|13:00|VCIDA’s PICK;AxMxP|13:30|14:00;GOODMOOD|14:40|15:20|BMMF’s PICK;Wendy Wander|16:00|16:50|EMERGE FEST’s PICK;세이수미|17:40|18:30;HYPNOSIS THERAPY|19:30|20:20|DANCING WAVE',
+ hidden:'베이루트택시|13:20|13:50;최춘목밴드|14:10|14:40;천둥오리|15:00|15:30;To More Raw|15:50|16:20;Eddie and the Bricks|16:40|17:10;*부락 대운동회|17:40|18:20|HIDDEN EVENT;*부락 노래자랑|18:30|19:20|HIDDEN EVENT'},
+3:{date:'2026-10-04',label:'10.4 일',en:'SUN',
+ samrock:'양치기 소년단|12:00|12:30;극동아시아타이거즈|13:00|13:30;너드커넥션|14:00|14:40;HANABIE.|15:20|16:00|TOKYO ISLAND’s PICK;한로로|16:50|17:40;Hitsujibungaku (羊文学)|18:40|19:40;THE LIBERTINES|20:50|22:00',
+ green:'심아일랜드|11:30|12:00;레이지본|12:30|13:00;Dragon Pony|13:30|14:00;AiNA THE END|14:40|15:20;LUCY|16:00|16:50;CNBLUE|17:40|18:40;송골매|19:40|20:40',
+ river:'희규|11:40|12:10;OYSTERS|12:40|13:10|MUSE ON’s PICK;Ardhito Pramono|13:40|14:20|LaLaLa Fest’s PICK;까치산|14:50|15:30;김뜻돌|16:00|16:40;김성규|17:10|18:00;카더가든|18:40|19:40',
+ wave:'정수민|11:30|12:00|MUSE ON’s PICK;BØJEONG|12:30|13:00;KIK|13:30|14:00;Tuesday Beach Club|14:40|15:20;놀이도감|16:00|16:50;데이먼스 이어|17:40|18:30;타이거디스코|19:40|20:30|DANCING WAVE',
+ hidden:'김푸름|13:20|13:50;시인을 위하여|14:10|14:40;데이네버체인지|15:00|15:30;포져군단|15:50|16:20;아사달|16:40|17:10;*Rookies on the BU-ROCK Awards|17:40|18:20|HIDDEN EVENT;*부락 노래자랑|18:30|19:20|HIDDEN EVENT'}};
+const HEAD={1:'AVENGED SEVENFOLD',2:'MEGADETH',3:'THE LIBERTINES'};
+
+/* Instagram — o: tagged by the festival (FINAL LINEUP post @busanrockfest, 1st LINEUP notice), s: found by web search (2nd lineup etc.) */
+const IG_O={'THE LIBERTINES':'thelibertines','브로콜리너마저':'band_broccoliyoutoo','장범준':'jangtigerjune','IDIOTAPE':'idiotapeofficial','강산에':'kang_saneh','D82':'d82official','LUCKLIFE':'lucklife_official_jp','산보':'bandsanbo','알레프':'alephriends','N.Flying':'letsroll_nf','Elephant Gym':'elephant_gym_official','J.E.B':'jebsensei','정우':'6th_saturday','Tokai':'tokai_official_','hrtz.wav':'hrtzwav','HOA':'band_hoa','GOODMOOD':'goodmoodband_','권진아':'kwonjinah_official','단감자':'dangamjah','브로큰 발렌타인':'brokenvalentine_official','세이수미':'saysueme','신인류':'shin_in_ryu','ADOY':'adoyband','야자수':'yajasuband','AxMxP':'axmxp_official','Wah Wah Wah':'w.a.h.w.a.h.w.a.h','Wendy Wander':'wendywanderofficial','윤마치':'yooonmarch','Chivan':'chivanfromthemoon_','Henry Moodie':'henrymoodie','HYPNOSIS THERAPY':'hypnosistherapy_','놀이도감':'noridogam','데이먼스 이어':'littlemushydickens','LUCY':'band_lucy','BØJEONG':'b0jeong_official','심아일랜드':'simile_land','AiNA THE END':'ainatheend_official','정수민':'soomofficial','KIK':'bandkikofficial','타이거디스코':'tgerdsco','Tuesday Beach Club':'tuesdaybeachclub','HANABIE.':'ha_na_bie_','희규':'ooxstalgia','나타샤':'bandnatasha_','노아코스트':'noacoast_official','블낫블':'off.bnb','아스라이':'asraii.official','퓨처피어클럽':'futurepeerclub','베이루트택시':'brtx_band','Eddie and the Bricks':'eddieandthebricks','천둥오리':'che0ndung0ri','최춘목밴드':'bandcmc','To More Raw':'tomoreraw_official','김푸름':'pureum_kim_official','데이네버체인지':'theynevxrchange','시인을 위하여':'for_the_poet.official','아사달':'asadal_official','포져군단':'poseridiott',
+'AVENGED SEVENFOLD':'avengedsevenfold','Suchmos':'scm_japan','CNBLUE':'cnblue.official','CreepHyp':'creep_hyp','Hitsujibungaku (羊文学)':'hitsujibungaku','까치산':'kachisanrecords','공원':'gongwon_official','김성규':'sungkyu.official','다다다':'dadada.band','레이지본':'lazybone.official','로맨틱펀치':'rp_official1','리도어':'band_redoor','밴드기린':'bandkirin_official','SPACEY JANE':'spacey_jane','양치기 소년단':'theshepherdbois','이츠':'iiiiits_','KARDI':'bandkardi_','캔트비블루':'cant_beblue','페퍼톤스':'peppertones_official','프랭클리':'band_frankly_band','한요한':'yohanheaven','hathaw9y':'hathaw9y'};
+const IG_S={'MEGADETH':'megadeth','이승윤':'leeseungyoon.official','잔나비':'jan_nabi_al','터치드':'touched_official','한로로':'hanr0r0','DYGL':'dayglotheband','Xdinary Heroes':'xdinaryheroes_official','고고학':'gogohawk','스카웨이커스':'skawakers_official','오월오일':'owalloil_official','WOODZ':'woodz_dnwm','극동아시아타이거즈':'far_east_asian_tigers','김뜻돌':'meaningful_stone','너드커넥션':'nerdconnection_official','Dragon Pony':'dragonpony_','Ardhito Pramono':'ardhitopramono','OYSTERS':'oysters.999','카더가든':'carthegarden','송골매':'songolmaetour'};
+function igOf(name){if(IG_O[name])return[IG_O[name],'o'];if(IG_S[name])return[IG_S[name],'s'];return['','']}
+
+/* F&B — official F&B notice images + sponsor notices (2026-09) */
+const FOOD=[
+ {g:'부산 로컬푸드',items:[
+  {v:'수안커피',sub:'총 5종',m:[['아이스커피',4800],['아이스라떼',5500],['소프트아이스크림',5500]]},
+  {v:'이흥용과자점',sub:'총 8종',m:[['소금빵 2입',5000],['츄러스 3입',6000],['초코슈퍼스타 2입',5500]]},
+  {v:'삼진어묵',m:[['삼진어묵한상 (어묵탕+어묵떡볶이)',15000],['삼진어묵탕',8500],['부산어묵떡볶이',8500]]}]},
+ {g:'푸드라운지 · 식사',items:[
+  {v:'조이쉐프',m:[['김치말이국수',9000],['제육비빔국수',10000]]},
+  {v:'주가향',m:[['물냉면',10000],['물비빔냉면',10000],['소고기불초밥',12000]]},
+  {v:'남해독일마을 수제소시지',m:[['모둠소시지 A세트',20000],['모둠소시지 B세트',25000]]},
+  {v:'오사카야끼',m:[['야끼소바',15000],['큐브스테이크',18000]]},
+  {v:'햅스후',m:[['타코야끼',7000],['오꼬노미야끼',13000]]},
+  {v:'다움컵밥',m:[['스팸마요컵밥',10500],['치킨마요컵밥',11000],['철판제육덮밥',13000]]},
+  {v:'머스트잇',m:[['잘익은삼겹살',18000],['공기밥',2000]]},
+  {v:'팝스스모크트레인',m:[['스모크 풀드포크 브리또',16000],['스모크 필리타코 (3pcs)',13000]]},
+  {v:'대호반점',m:[['짜장면',10000]]},
+  {v:'미친피자',m:[['미친피자 시그니처',21900],['미친피자 페퍼로니',15900],['미친피자 더블치즈',13900]]},
+  {v:'모건',m:[['치즈닭강정 한판',15000],['치즈닭강정 한박스',20000],['쯔란닭강정 한판',15000],['쯔란닭강정 한박스',20000]]},
+  {v:'욥버거',m:[['한우치즈버거',10000],['솔팅XYOB 콘치즈핫도그',10000],['프렌치프라이즈',5000],['비프치즈프라이즈',10000]]},
+  {v:'청춘분식',sub:'총 7종',m:[['닭꼬치',6000],['쫀드기',6000],['떡볶이',5000],['어묵탕',6000],['떡+튀+순',18000]]},
+  {v:'쉬림프박스',m:[['칠리새우강정',14000],['크림새우강정',14000],['반반새우강정',15000],['새우튀김',14000],['쉬림프박스',27000]]},
+  {v:'텍사스독스',m:[['소고기팟타이',12000],['새우팟타이',12000],['마라소고기팟타이',13000],['마라새우팟타이',13000]]},
+  {v:'비건',sub:'비건 메뉴 · 총 5종',m:[['키토김밥 순한맛',7000],['키토김밥 불닭맛',7000],['아이스콩물',5000]]}]},
+ {g:'디저트·음료',items:[
+  {v:'비락식혜',sub:'이벤트 참여 시 굿즈 제공',m:[['비락식혜 슬러시 (495ml)',2000]]},
+  {v:'돼지팥빙수',m:[['수제팥 돼지빙수',13000],['망고치즈빙수',15000],['샤인청포도빙수 (한정판매)',15000]]},
+  {v:'몬스터 에너지',m:[['몬스터 에너지 · 제로 슈거 · 울트라 · 망고 로코 · 파이프라인 펀치',2000]]}]},
+ {g:'주류 부스',items:[
+  {v:'칭따오-락(樂)',sub:'RIVER 스테이지 · 행운의 캡슐 뽑기',m:[['칭따오 라거 생맥주 400ml',6000],['칭따오 라거 생맥주 1L',11500],['논알콜릭 / 논알콜릭 레몬 S',5500],['논알콜릭 / 논알콜릭 레몬 L',10000]]},
+  {v:'대선',m:[['대선 더블샷',3000],['샤인머스켓 더블샷',4000],['와인 반잔',4000],['대선 프레소',5000],['대선 하이볼',6000],['광안 오션 (피나콜라다)',7000],['해운대 라이징 (파인&오렌지)',7000],['송정 크러쉬 (메론)',7000],['대박주',7000]]},
+  {v:'몬스터 에너지 칵테일',m:[['하이볼 · 시나몬 하이볼 · 보드카 밤 · 데킬라 선라이즈',6000]]},
+  {v:'제임슨',sub:'가격은 현장 확인',m:[['제임슨 진저 하이볼',null],['제임슨 블랙배럴',null],['제임슨 레모네이드 슬러쉬 하이볼',null]]}]}];
+
+/* HIDDEN stage activity programme (official notice 2026notice_24) */
+const FUN=[
+ {d:[1,2,3],st:'12:00',en:'19:20',t:'부락-늬우스',p:'아티스트 TMI부터 관람객 소식까지 전하는 부스'},
+ {d:[1,2,3],st:'12:00',en:'19:20',t:'부락-미니게임',p:'부캉아 나와라~ · 단디 올리라! · 밥 무라 · 산복도로 올라가기 · 광안대교까지. 최대 2027 부락 초대권'},
+ {d:[1,2,3],st:'12:00',en:'19:20',t:'부락-타투존',p:'스티커 타투로 얼꾸·몸꾸. 스티커 소진 시 조기 종료'},
+ {d:[1,2,3],st:'14:30',en:'18:30',t:'부락-삐',p:'HIDDEN 스테이지 안팎에 삐에로가 돌발 출몰'},
+ {d:[1,2,3],st:'17:10',en:'17:40',t:'노래자랑 참가 접수',p:'HIDDEN 스테이지 접수 부스에서 신청, 무작위 8명 선정. 당일 프로그램만 신청 가능'},
+ {d:[1,2],st:'17:40',en:'18:20',t:'부락-대운동회',p:'박 터트리기 · 공 TOSS 게임 · 인간 청기백기. 개회사·국민체조 10/2 Tokai, 10/3 신인류. 신청 없이 참여'},
+ {d:[3],st:'17:40',en:'18:20',t:'루키즈 온 더 부락 시상식',p:'Rookies on the BU-ROCK Awards Ceremony'},
+ {d:[1,2,3],st:'18:30',en:'19:20',t:'부락-노래자랑',p:'노래방 점수 1등에게 2027 부락 3일권(1인 1매). 참가자 전원 공식 MD'}];
+const BOOTHS=[
+ {t:'로부락존',d:'매일 12:00~20:00 · HIDDEN 스테이지 인근',p:'Road to BU-ROCK 전시회, 2027 개최 도시 투표. 실물 핀뱃지 보유자 혜택: 1개 생수 무제한, 2개 +슬러시, 3개 +팝콘 무제한·로부락단 어깨띠',u:'https://busanrockfestival.com/notice/2026notice_27/'},
+ {t:'삼락테마파크',d:'매일 11:00~20:40 · HIDDEN 스테이지 인근',p:'놀이기구 1회 5,000원 (카드·현금·계좌이체). 날씨에 따라 중단, 만 10세 이하·주취자 등 탑승 제한 가능',u:'https://busanrockfestival.com/notice/2026notice_23/'},
+ {t:'토스 페이스페이 라운지',d:'매일 10:00 현장 예약 오픈',p:'쿨링티와 휴식 공간. 페이스페이 자판기에서 방석·우산·물티슈 판매',u:'https://busanrockfestival.com/notice/2026notice_20/'},
+ {t:'공식 포토부스 · 돈룩업',d:'메인 게이트 근처',p:'부락 2026 프레임으로 촬영. 포토존은 SAMROCK·HIDDEN 근처',u:'https://busanrockfestival.com/notice/2026notice_13/'},
+ {t:'키즈존',d:'매일 12:00~18:00 · 무료',p:'신발 벗고 입장, 미취학 아동은 보호자 동반',u:'https://busanrockfestival.com/notice/2026notice_25/'},
+ {t:'글로벌 지원 부스',d:'가운데 광장',p:'외국인 관람객 안내 (영·일·중 지원)',u:'https://busanrockfestival.com/notice/2026notice_34/'}];
+
+function renderFood(){const q=($('#fq').value||'').trim().toLowerCase();let h='';
+ FOOD.forEach(g=>{const its=g.items.filter(it=>!q||it.v.toLowerCase().includes(q)||it.m.some(m=>m[0].toLowerCase().includes(q))||(it.sub||'').toLowerCase().includes(q));if(!its.length)return;
+  h+=`<div class="group-h">${esc(g.g)}</div>`+its.map(it=>`<div class="vendor"><h3>${esc(it.v)}${it.sub?` <small>${esc(it.sub)}</small>`:''}</h3><div class="menu">${it.m.map(m=>`<span>${esc(m[0])}</span><span>${m[1]==null?'현장 확인':m[1].toLocaleString('ko-KR')+'원'}</span>`).join('')}</div></div>`).join('')});
+ $('#food').innerHTML=h||'<div class="empty">찾는 메뉴가 없어요</div>'}
+function renderFun(){const d=S.day,isToday=DAYS[d-1].date===todayYMD;const now=new Date(),nm=now.getHours()*60+now.getMinutes();
+ $('#fun-h').textContent=`HIDDEN 스테이지 액티비티 · DAY ${d}`;
+ $('#fun').innerHTML=FUN.filter(f=>f.d.includes(d)).map(f=>{const on=isToday&&nm>=mins(f.st)&&nm<mins(f.en);return`<div class="prog"><div class="tm${on?' now':''}">${f.st}–${f.en}${on?'<br>지금 진행 중':''}</div><div><b>${esc(f.t)}</b><p>${esc(f.p)}</p></div></div>`}).join('')+`<p class="src"><a href="https://busanrockfestival.com/notice/2026notice_24/" target="_blank" rel="noopener">HIDDEN 스테이지 액티비티 공지</a></p>`;
+ $('#booths').innerHTML=BOOTHS.map(b=>`<div class="box"><h3>${esc(b.t)}</h3><p class="meta" style="margin:0">${esc(b.d)}</p><p class="note" style="color:var(--ink)">${esc(b.p)}</p><p class="src"><a href="${b.u}" target="_blank" rel="noopener">공지 보기</a></p></div>`).join('')}
+
+const SETS=[];
+const mins=t=>{const[h,m]=t.split(':').map(Number);return h*60+m};
+[1,2,3].forEach(d=>STAGES.forEach(st=>TT[d][st.k].split(';').forEach(s=>{const[n0,a,b,note]=s.split('|');const ev=n0.startsWith('*');const name=ev?n0.slice(1):n0;const ig=igOf(name);
+ SETS.push({id:SETS.length,day:d,stage:st.k,sname:st.name,name,st:a,en:b,s:mins(a),e:mins(b),note:note||'',ev,head:HEAD[d]===name,ig:ig[0]||'',igf:ig[1]||''})})));
+const byDay=d=>SETS.filter(x=>x.day===d);
+const STG=Object.fromEntries(STAGES.map(s=>[s.k,s]));
+const DAYS=[1,2,3].map(n=>Object.assign({n},TT[n]));
+
+/* ---------- state ---------- */
+const KEY='burock26-v2';
+const S={day:1,tab:'tt',view:'grid',picks:{},friends:[],name:'',wp:{day:1,mode:'list',theme:'riso',size:'ip',memo:''},open:null};
+try{const r=JSON.parse(localStorage.getItem(KEY)||'null');if(r)Object.assign(S,r,{wp:Object.assign(S.wp,r.wp||{}),open:null,tab:'tt'})}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({day:S.day,view:S.view,picks:S.picks,friends:S.friends,name:S.name,wp:S.wp}))}catch(e){}}
+const todayYMD=(()=>{const t=new Date();return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')})();
+{const d=DAYS.find(x=>x.date===todayYMD);if(d){S.day=d.n;S.wp.day=d.n}}
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2400)}
+const picked=x=>!!S.picks[x.id];
+function togglePick(id){if(S.picks[id])delete S.picks[id];else S.picks[id]=1;save();renderAll()}
+
+/* ---------- D-day ---------- */
+(function(){const now=new Date(),end=new Date(2026,9,4,23,59);const d0=new Date(now.getFullYear(),now.getMonth(),now.getDate());const diff=Math.round((new Date(2026,9,2)-d0)/864e5);const k=DAYS.find(x=>x.date===todayYMD);
+ $('#dday').textContent=now>end?'부락 2026 끝! 수고했어요':k?`지금 DAY ${k.n} · ${k.label} · GATE 10:00`:diff>0?`D-${diff} · 10.2 FRI – 10.4 SUN · GATE 10:00`:'10.2 FRI – 10.4 SUN'})();
+
+/* ---------- band / tabs ---------- */
+function renderBand(){$('#band').innerHTML=DAYS.map(d=>{const c=byDay(d.n).filter(picked).length;return`<button aria-pressed="${S.day===d.n}" data-day="${d.n}"><span>DAY ${d.n} · ${d.label}</span><b>${d.en}</b><small>${esc(HEAD[d.n])}</small>${c?`<span class="cnt">★${c}</span>`:''}</button>`}).join('')}
+$('#band').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.day=+b.dataset.day;S.wp.day=S.day;save();closeSheet();renderAll()});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.tab=b.dataset.tab;closeSheet();showTab()});
+function showTab(){document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===S.tab));document.querySelectorAll('section.panel').forEach(p=>p.hidden=p.id!=='p-'+S.tab);if(S.tab==='wall')drawWall();if(S.tab==='food')renderFood();if(S.tab==='fun')renderFun();if(S.tab==='info')renderMap();window.scrollTo({top:Math.min(window.scrollY,document.querySelector('#band').offsetTop),behavior:'instant'})}
+
+/* ---------- instagram button ---------- */
+function igBtn(x){if(x.ev)return'';if(x.ig&&x.igf==='o')return`<a class="ig" href="https://www.instagram.com/${x.ig}/" target="_blank" rel="noopener" title="공식 라인업 게시물·공지에 태그된 계정">@${esc(x.ig)}</a>`;
+ if(x.ig)return`<a class="ig chk" href="https://www.instagram.com/${x.ig}/" target="_blank" rel="noopener" title="웹 검색으로 찾은 계정 (공식 태그 미확인)">@${esc(x.ig)}</a>`;
+ return`<a class="ig srch" href="https://www.google.com/search?q=${encodeURIComponent(x.name+' 공식 인스타그램')}" target="_blank" rel="noopener">인스타 검색</a>`}
+const frOf=x=>S.friends.filter(f=>f.picks.includes(x.id)).map(f=>f.name);
+
+/* ---------- timetable grid ---------- */
+const T0=11*60+20,T1=22*60+10,PPM=1.7;
+function renderTT(){const q=$('#q').value.trim().toLowerCase();document.querySelectorAll('#view button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.view));
+ if(S.view==='list'||q){renderList(q);return}
+ const d=S.day,H=(T1-T0)*PPM;let axis='';for(let m=12*60;m<=22*60;m+=60)axis+=`<span style="top:${(m-T0)*PPM}px">${m/60}:00</span>`;
+ let hrs='';for(let m=12*60;m<=22*60;m+=60)hrs+=`<div class="hr" style="top:${(m-T0)*PPM}px"></div>`;
+ const cols=STAGES.map(st=>`<div class="col" style="height:${H}px">${hrs}${byDay(d).filter(x=>x.stage===st.k).map(x=>{const fr=frOf(x);const anyPick=byDay(d).some(picked);
+  return`<button class="blk st-${st.k}${x.head?' hl':''}${x.ev?' ev':''}${picked(x)?' on':''}" data-id="${x.id}" style="top:${(x.s-T0)*PPM+1}px;height:${(x.e-x.s)*PPM-2}px" aria-label="${esc(x.name)} ${x.st}~${x.en} ${st.name}${picked(x)?' 담김':''}"><b>${esc(x.name)}</b><i>${x.st}–${x.en}</i>${fr.length?`<span class="frd">${fr.map(n=>`<em>${esc(n)}</em>`).join('')}</span>`:''}</button>`}).join('')}</div>`).join('');
+ let now='';if(DAYS[d-1].date===todayYMD){const t=new Date(),m=t.getHours()*60+t.getMinutes();if(m>=T0&&m<=T1)now=`<div class="nowline" style="top:${(m-T0)*PPM+38}px"><span>${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}</span></div>`}
+ $('#tt-wrap').innerHTML=`<div class="tt-scroll" id="tts"><div class="tt"><div class="tt-head"><div class="corner"></div>${STAGES.map(st=>`<div class="st-${st.k}">${st.name}<small>${st.free?'STAGE · FREE':'STAGE'}</small></div>`).join('')}</div><div class="axis" style="height:${H}px">${axis}</div>${cols}${now}</div></div>`}
+function renderList(q){const pool=(q?SETS.filter(x=>x.name.toLowerCase().includes(q)):byDay(S.day)).slice().sort((a,b)=>a.day-b.day||a.s-b.s||STAGES.findIndex(s=>s.k===a.stage)-STAGES.findIndex(s=>s.k===b.stage));
+ $('#tt-wrap').innerHTML=`<ol class="list">${pool.map(x=>{const fr=frOf(x);return`<li class="row"><button class="star" aria-pressed="${picked(x)}" data-star="${x.id}" aria-label="${esc(x.name)} 담기">★</button><div style="min-width:0"><div class="nm">${esc(x.name)}</div><div class="meta">${q?`<span>DAY ${x.day}</span>`:''}<span>${x.st}–${x.en}</span><span class="pill st-${x.stage}">${x.sname}</span>${x.head?'<span class="tag hl">HEADLINER</span>':''}${x.ev?'<span class="tag">HIDDEN EVENT</span>':''}${fr.length?`<span class="tag fr">${fr.map(esc).join('·')}도 봄</span>`:''}</div></div>${igBtn(x)}</li>`}).join('')||'<li class="empty">검색 결과가 없어요</li>'}</ol>`}
+$('#q').addEventListener('input',renderTT);
+$('#view').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.view=b.dataset.v;save();renderTT()});
+$('#tt-wrap').addEventListener('click',e=>{const s=e.target.closest('[data-star]');if(s){togglePick(+s.dataset.star);return}const b=e.target.closest('.blk');if(b)openSheet(+b.dataset.id)});
+
+/* ---------- sheet ---------- */
+function openSheet(id){S.open=id;renderSheet()}
+function closeSheet(){S.open=null;$('#sheet').hidden=true}
+function renderSheet(){if(S.open==null){$('#sheet').hidden=true;return}const x=SETS[S.open];const fr=frOf(x);const clash=byDay(x.day).filter(y=>y.id!==x.id&&picked(y)&&y.s<x.e&&x.s<y.e);
+ $('#sheet').innerHTML=`<button class="x" aria-label="닫기" data-close>×</button><div class="meta"><span>DAY ${x.day} · ${DAYS[x.day-1].label}</span><span class="pill st-${x.stage}">${x.sname} STAGE${STG[x.stage].free?' · FREE':''}</span>${x.note?`<span class="tag">${esc(x.note)}</span>`:''}</div><h3>${esc(x.name)}</h3><div class="meta" style="font-size:15px;color:var(--ink)"><b>${x.st} – ${x.en}</b><span>(${x.e-x.s}분)</span></div>${fr.length?`<p class="note">같이 담은 친구: ${fr.map(esc).join(', ')}</p>`:''}${clash.length&&!picked(x)?`<p class="warnline">담아 둔 ${clash.map(c=>esc(c.name)).join(', ')}와 시간이 겹쳐요</p>`:''}<div class="btnrow"><button class="btn ${picked(x)?'ghost':'pink'}" data-toggle="${x.id}">${picked(x)?'★ 빼기':'★ 내 시간표에 담기'}</button>${igBtn(x)}</div>`;$('#sheet').hidden=false}
+$('#sheet').addEventListener('click',e=>{if(e.target.closest('[data-close]')){closeSheet();return}const t=e.target.closest('[data-toggle]');if(t){togglePick(+t.dataset.toggle);toast(S.picks[+t.dataset.toggle]?'내 시간표에 담았어요':'뺐어요')}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+
+/* ---------- mine ---------- */
+function dayPicks(n){return byDay(n).filter(picked).sort((a,b)=>a.s-b.s)}
+function renderMine(){const d=DAYS[S.day-1];const list=dayPicks(S.day);$('#mine-h').textContent=`DAY ${d.n} · ${d.label} — ${list.length}개 무대`;
+ if(!list.length){$('#mine').innerHTML=`<div class="empty">아직 담은 무대가 없어요. ‘타임테이블’에서 무대를 눌러 담아 보세요.</div>`;return}
+ let h='';list.forEach((x,i)=>{const prev=list[i-1];if(prev){const g=x.s-prev.e;const move=prev.stage!==x.stage;h+=`<div class="gap${g<0?' bad':''}">${g<0?`${-g}분 겹쳐요 · ${prev.name} 끝나기 전에 시작`:`${g}분 쉬고${move?` → ${x.sname}로 이동`:' · 같은 스테이지'}`}</div>`}
+  h+=`<div class="pick${(prev&&x.s<prev.e)||(list[i+1]&&list[i+1].s<x.e)?' clash':''}"><div class="tm">${x.st}<small>~${x.en}</small></div><div style="min-width:0"><div class="nm">${esc(x.name)}</div><div class="meta"><span class="pill st-${x.stage}">${x.sname}</span>${x.head?'<span class="tag hl">HEADLINER</span>':''}${x.note?`<span>${esc(x.note)}</span>`:''}</div></div><div style="display:grid;gap:6px;justify-items:end">${igBtn(x)}<button class="tiny" data-un="${x.id}">빼기</button></div></div>`});
+ $('#mine').innerHTML=h}
+$('#mine').addEventListener('click',e=>{const b=e.target.closest('[data-un]');if(b)togglePick(+b.dataset.un)});
+
+/* ---------- share code: bitmask of set ids → 6 base36 chunks ---------- */
+function makeCode(){const ch=[];for(let c=0;c<6;c++){let v=0;for(let b=0;b<20;b++){const id=c*20+b;if(id<SETS.length&&S.picks[id])v+=2**b}ch.push(v.toString(36))}const nm=S.name.trim();return'br26b-'+ch.join('.')+(nm?'~'+nm:'')}
+function parseCode(txt){const m=String(txt).match(/br26b-([0-9a-z]+(?:\.[0-9a-z]+){5})(?:~([^\s#]{1,10}))?/i);if(!m)return null;const picks=[];m[1].split('.').forEach((p,c)=>{const v=parseInt(p,36);for(let b=0;b<20;b++)if(Math.floor(v/2**b)%2===1){const id=c*20+b;if(id<SETS.length)picks.push(id)}});return{name:m[2]||'',picks}}
+const FRAMED=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+const BASE=location.href.split('#')[0].split('?')[0];
+function myLink(){const c=makeCode();const [code,nm]=c.split('~');return BASE+'#'+code+(nm?'~'+encodeURIComponent(nm):'')}
+function myListText(){return DAYS.map(d=>{const l=dayPicks(d.n).map(x=>`${x.st} ${x.name} (${x.sname})`);return`DAY${d.n} ${d.label}\n${l.join('\n')||'-'}`}).join('\n\n')}
+function renderFriends(){$('#my-name').value=S.name;const code=makeCode();$('#my-code').textContent=code;
+ $('#link-area').hidden=FRAMED||!/^https?:/.test(location.protocol);$('#my-link').textContent=myLink();
+ $('#fr-list').innerHTML=S.friends.map((f,i)=>{const both=f.picks.filter(id=>S.picks[id]);return`<div class="box"><div style="display:flex;justify-content:space-between;gap:8px"><h3>${esc(f.name)} · ${f.picks.length}개 무대 · 같이 ${both.length}</h3><button class="tiny" data-rm="${i}">지우기</button></div>
+  ${DAYS.map(d=>{const all=f.picks.filter(id=>SETS[id].day===d.n).sort((a,c)=>SETS[a].s-SETS[c].s);return`<div><span class="meta">DAY ${d.n} · ${all.length}개</span><div>${all.map(id=>`<span class="chip"${S.picks[id]?' style="outline:2px solid var(--pink)"':''}>${SETS[id].st} ${esc(SETS[id].name)}${S.picks[id]?' ★':''}</span>`).join('')||'<span class="note">—</span>'}</div></div>`}).join('')}
+  <div class="btnrow"><button class="tiny" data-copyall="${i}">친구 픽 전부 내 시간표에 담기</button></div></div>`}).join('')}
+$('#my-name').addEventListener('input',e=>{S.name=e.target.value.replace(/[\s#~]/g,'');save();renderFriends()});
+function copyText(t,okMsg,el){const fb=()=>{if(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}toast('선택해 뒀어요. 복사해서 보내세요')};
+ if(navigator.clipboard?.writeText)navigator.clipboard.writeText(t).then(()=>toast(okMsg),fb);else fb()}
+$('#copy-link').addEventListener('click',()=>copyText(myLink(),'링크를 복사했어요',$('#my-link')));
+$('#share-link').addEventListener('click',async()=>{const text=`🎸 부락 2026 내 시간표${S.name?' ('+S.name+')':''}\n\n${myListText()}\n\n링크를 열면 내 픽이 타임테이블에 같이 떠요`;
+ if(navigator.share){try{await navigator.share({title:'부락 2026 내 시간표',text,url:myLink()});return}catch(e){if(e&&e.name==='AbortError')return}}
+ copyText(text+'\n'+myLink(),'링크와 내 시간표를 복사했어요',$('#my-link'))});
+$('#copy-code').addEventListener('click',()=>{const msg=`🎸 부락 2026 내 시간표\n\n${myListText()}\n\n친구 코드: ${makeCode()}\n(부락 2026 내 시간표 > 친구 공유 > 친구 링크·코드 넣기)`;copyText(msg,'복사했어요. 친구에게 붙여 넣어 보내세요',$('#my-code'))});
+function addFriend(txt,silent){let t=String(txt);try{t=decodeURIComponent(t)}catch(e){}const f=parseCode(t);if(!f){if(!silent){$('#fr-err').textContent='코드를 찾지 못했어요. br26b- 로 시작하는 부분이 들어 있는지 확인해 주세요.';$('#fr-err').hidden=false}return null}
+ $('#fr-err').hidden=true;if(f.picks.length&&f.picks.every(id=>S.picks[id])&&Object.keys(S.picks).length===f.picks.length&&!f.name){if(!silent)toast('내 코드예요');return null}
+ if(!f.name)f.name='친구'+(S.friends.length+1);const i=S.friends.findIndex(x=>x.name===f.name);if(i>=0)S.friends[i]=f;else S.friends.push(f);save();renderAll();if(!silent)toast(`${f.name}님 픽을 불러왔어요`);return f}
+function renderBanner(){const b=$('#fr-banner');if(!S.justAdded){b.hidden=true;return}const f=S.justAdded;
+ b.innerHTML=`<span><b>${esc(f.name)}</b>님 픽 ${f.picks.length}개가 타임테이블에 이름표로 떠요</span><span class="btnrow"><button class="btn" data-ban="mine">내 픽도 골라서 보내기</button><button class="tiny" style="color:var(--paper)" data-ban="x">닫기</button></span>`;b.hidden=false}
+$('#fr-banner').addEventListener('click',e=>{const t=e.target.closest('[data-ban]');if(!t)return;S.justAdded=null;renderBanner();if(t.dataset.ban==='mine'){S.tab='friends';showTab()}});
+$('#fr-list').addEventListener('click',e=>{const c=e.target.closest('[data-copyall]');if(c){S.friends[+c.dataset.copyall].picks.forEach(id=>S.picks[id]=1);save();renderAll();toast('친구 픽을 내 시간표에 담았어요');return}});
+$('#fr-add').addEventListener('click',()=>{if(addFriend($('#fr-in').value))$('#fr-in').value=''});
+$('#fr-list').addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(!b)return;S.friends.splice(+b.dataset.rm,1);save();renderAll()});
+
+/* ---------- wallpaper ---------- */
+const THEMES={
+ riso:{label:'리소 핑크',bg:'#e9edf2',ink:'#16213a',acc:'#e8307a',acc2:'#f2b705',sub:'#5b6479',dot:'rgba(232,48,122,.18)',grid:'rgba(22,33,58,.14)'},
+ night:{label:'낙동강 밤',bg:'#0f1628',ink:'#eef1f7',acc:'#ff4f93',acc2:'#f5c33b',sub:'#9aa4bb',dot:'rgba(255,79,147,.16)',grid:'rgba(238,241,247,.14)'},
+ reed:{label:'갈대 노을',bg:'#f3c93a',ink:'#1b1a2e',acc:'#1b1a2e',acc2:'#e8307a',sub:'#4a3f1c',dot:'rgba(27,26,46,.12)',grid:'rgba(27,26,46,.16)'}};
+const SIZES={ip:{label:'아이폰 1170×2532',w:1170,h:2532},pm:{label:'아이폰 Pro Max 1290×2796',w:1290,h:2796},gx:{label:'갤럭시 1080×2400',w:1080,h:2400}};
+const MODES={list:'내 무대 크게',grid:'하루 타임테이블'};
+function seg(el,obj,cur,lab){$(el).innerHTML=Object.entries(obj).map(([k,v])=>`<button aria-pressed="${String(cur)===String(k)}" data-v="${k}">${lab(k,v)}</button>`).join('')}
+function renderWallOpts(){seg('#wp-day',{1:1,2:2,3:3},S.wp.day,k=>'DAY '+k);seg('#wp-mode',MODES,S.wp.mode,(k,v)=>v);seg('#wp-theme',THEMES,S.wp.theme,(k,v)=>v.label);seg('#wp-size',SIZES,S.wp.size,(k,v)=>v.label);$('#wp-memo').value=S.wp.memo}
+[['#wp-day','day',Number],['#wp-mode','mode',String],['#wp-theme','theme',String],['#wp-size','size',String]].forEach(([el,key,cast])=>$(el).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.wp[key]=cast(b.dataset.v);save();renderWallOpts();drawWall()}));
+$('#wp-memo').addEventListener('input',e=>{S.wp.memo=e.target.value;save();clearTimeout(drawWall.h);drawWall.h=setTimeout(drawWall,250)});
+
+let fontsReady=null;
+function ensureFonts(){if(!fontsReady){fontsReady=Promise.race([Promise.all(['400 80px "Black Han Sans"','700 40px "IBM Plex Sans KR"','500 30px "IBM Plex Sans KR"','600 40px "IBM Plex Mono"'].map(f=>document.fonts?document.fonts.load(f,'부락가A1'):0)).catch(()=>{}),new Promise(r=>setTimeout(r,2500))])}return fontsReady}
+const FD='"Black Han Sans","IBM Plex Sans KR",sans-serif',FB='"IBM Plex Sans KR","Apple SD Gothic Neo",sans-serif',FM='"IBM Plex Mono",ui-monospace,monospace';
+function fitFont(c,text,maxW,size,w,f,min){let s=size;c.font=`${w} ${s}px ${f}`;while(c.measureText(text).width>maxW&&s>min){s-=1;c.font=`${w} ${s}px ${f}`}return s}
+function wrap2(c,text,maxW,size,w,f,min){let s=fitFont(c,text,maxW,size,w,f,size*.8);if(c.measureText(text).width<=maxW)return{lines:[text],s};const parts=text.split(' ');if(parts.length>1){let best=null;for(let i=1;i<parts.length;i++){const a=parts.slice(0,i).join(' '),b=parts.slice(i).join(' ');const m=Math.max((c.font=`${w} ${size}px ${f}`,c.measureText(a).width),c.measureText(b).width);if(!best||m<best.m)best={a,b,m}}let s2=size;c.font=`${w} ${s2}px ${f}`;while(Math.max(c.measureText(best.a).width,c.measureText(best.b).width)>maxW&&s2>min){s2--;c.font=`${w} ${s2}px ${f}`}return{lines:[best.a,best.b],s:s2}}return{lines:[text],s:fitFont(c,text,maxW,size,w,f,min)}}
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function decor(c,T,W,H,u,bottom){for(let y=0;y<bottom;y+=26*u)for(let x=((y/(26*u))%2)*13*u;x<W;x+=26*u){const r=(1-y/bottom)*7*u+1*u;c.fillStyle=T.dot;c.beginPath();c.arc(x,y,r,0,7);c.fill()}
+ c.lineWidth=5*u;for(let k=0;k<3;k++){c.strokeStyle=k===1?T.acc:T.ink;c.globalAlpha=k===1?1:.18;c.beginPath();const y0=bottom-40*u+k*20*u;for(let x=0;x<=W;x+=8*u){const y=y0+Math.sin(x/(90*u)+k*1.3)*9*u;x?c.lineTo(x,y):c.moveTo(x,y)}c.stroke()}c.globalAlpha=1;
+ c.strokeStyle=T.acc2;c.lineCap='round';for(let i=0;i<12;i++){const x=W*.66+i*28*u,h=(100+((i*37)%60))*u,base=bottom-10*u;c.lineWidth=4*u;c.beginPath();c.moveTo(x,base);c.quadraticCurveTo(x+8*u,base-h*.6,x+16*u,base-h);c.stroke();c.fillStyle=T.acc2;c.beginPath();c.ellipse(x+16*u,base-h-12*u,5*u,16*u,.35,0,7);c.fill()}}
+async function drawWall(){await ensureFonts();const T=THEMES[S.wp.theme]||THEMES.riso,Z=SIZES[S.wp.size]||SIZES.ip,d=DAYS[S.wp.day-1];const cv=$('#cv');cv.width=Z.w;cv.height=Z.h;const c=cv.getContext('2d');const W=Z.w,H=Z.h,u=W/1170;const L=80*u,R=W-80*u,CW=R-L;
+ c.fillStyle=T.bg;c.fillRect(0,0,W,H);c.textBaseline='alphabetic';c.textAlign='left';
+ let list=dayPicks(d.n);const fallback=!list.length;if(fallback)list=byDay(d.n).filter(x=>x.head);
+ if(S.wp.mode==='grid'){drawGridWall(c,T,W,H,u,d,list,fallback)}else{
+ decor(c,T,W,H,u,H*.33);
+ let y=H*.375;c.fillStyle=T.acc;c.font=`600 ${30*u}px ${FM}`;c.fillText(`BU-ROCK 2026 · DAY ${d.n}`,L,y);
+ y+=108*u;c.fillStyle=T.ink;c.font=`400 ${112*u}px ${FD}`;c.fillText(d.label.replace(' ','. '),L,y);c.font=`400 ${52*u}px ${FD}`;c.fillStyle=T.acc;c.textAlign='right';c.fillText(d.en,R,y);c.textAlign='left';
+ y+=42*u;c.font=`500 ${27*u}px ${FB}`;c.fillStyle=T.sub;c.fillText('삼락생태공원 · GATE OPEN 10:00',L,y);
+ y+=30*u;c.fillStyle=T.ink;c.fillRect(L,y,CW,4*u);y+=26*u;
+ c.font=`600 ${24*u}px ${FM}`;c.fillStyle=T.sub;c.fillText(fallback?'HEADLINER':`MY STAGES · ${list.length}`,L,y+24*u);y+=50*u;
+ const bottomLimit=H*.835,avail=bottomLimit-y,rowH=Math.min(158*u,Math.max(70*u,avail/Math.max(list.length,1)));const shown=Math.min(list.length,Math.floor(avail/rowH));
+ const tW=190*u;
+ list.slice(0,shown).forEach((x,i)=>{const top=y+i*rowH,big=Math.min(60*u,rowH*.4),sm=Math.min(26*u,rowH*.2);const nameY=top+rowH*.45;
+  c.font=`600 ${Math.min(40*u,rowH*.28)}px ${FM}`;c.fillStyle=T.acc;c.fillText(x.st,L,nameY);c.font=`500 ${Math.min(24*u,rowH*.17)}px ${FM}`;c.fillStyle=T.sub;c.fillText('~ '+x.en,L,nameY+Math.min(34*u,rowH*.24));
+  const nx=L+tW,nw=R-nx;fitFont(c,x.name,nw,big,'400',FD,big*.5);c.fillStyle=T.ink;c.fillText(x.name,nx,nameY);
+  const pill=x.sname+' STAGE';c.font=`600 ${sm}px ${FM}`;const pw=c.measureText(pill).width+22*u,ph=sm*1.5,py=nameY+sm*.55;c.fillStyle=STG[x.stage].c;rr(c,nx,py,pw,ph,ph/2);c.fill();c.fillStyle='#16213a';c.fillText(pill,nx+11*u,py+ph*.72);
+  if(x.head){c.font=`600 ${sm*.9}px ${FM}`;c.fillStyle=T.acc;c.fillText('HEADLINER',nx+pw+14*u,py+ph*.72)}
+  if(i<shown-1){c.fillStyle=T.grid;c.fillRect(nx,top+rowH-2*u,nw,2*u)}});
+ if(list.length>shown){c.font=`500 ${24*u}px ${FB}`;c.fillStyle=T.sub;c.fillText(`+ ${list.length-shown}개 더 · ‘하루 타임테이블’ 구성으로 저장하면 다 보여요`,L,bottomLimit)}
+ }
+ let fy=H*.87;c.fillStyle=T.ink;c.fillRect(L,fy-38*u,CW,2*u);c.font=`500 ${24*u}px ${FB}`;c.fillStyle=T.sub;fitFont(c,'셔틀  사상역 3번 출구 ↔ 공원 굴다리 · 09:30–23:00 · 무료',CW,24*u,'500',FB,16*u);c.fillText('셔틀  사상역 3번 출구 ↔ 공원 굴다리 · 09:30–23:00 · 무료',L,fy);
+ if(S.wp.memo.trim()){fy+=42*u;fitFont(c,S.wp.memo.trim(),CW,30*u,'700',FB,18*u);c.fillStyle=T.acc;c.fillText(S.wp.memo.trim(),L,fy)}
+ $('#wp-img').src=cv.toDataURL('image/png')}
+function drawGridWall(c,T,W,H,u,d,list,fallback){const L=56*u,R=W-40*u;decor(c,T,W,H,u,H*.2);
+ let y=H*.275;c.fillStyle=T.ink;c.font=`400 ${64*u}px ${FD}`;c.fillText(`DAY ${d.n} · ${d.label}`,L,y);c.textAlign='right';c.fillStyle=T.acc;c.font=`600 ${26*u}px ${FM}`;c.fillText(fallback?'BU-ROCK 2026':`★ ${list.length} MY STAGES`,R,y);c.textAlign='left';
+ const gx=L+64*u,gw=R-gx,cw=gw/5,top=y+34*u,hh=52*u,g0=top+hh+8*u,g1=H*.825,a=11*60+20,b=22*60+5,ppm=(g1-g0)/(b-a);
+ STAGES.forEach((st,i)=>{c.fillStyle=st.c;rr(c,gx+i*cw+3*u,top,cw-6*u,hh,8*u);c.fill();c.fillStyle='#16213a';c.textAlign='center';c.font=`400 ${fitFont(c,st.name,cw-16*u,28*u,'400',FD,16*u)}px ${FD}`;c.fillText(st.name,gx+i*cw+cw/2,top+hh*.68)});c.textAlign='left';
+ for(let m=12*60;m<=22*60;m+=60){const yy=g0+(m-a)*ppm;c.fillStyle=T.grid;c.fillRect(gx,yy,gw,2*u);c.fillStyle=T.sub;c.font=`600 ${22*u}px ${FM}`;c.textAlign='right';c.fillText(String(m/60),gx-12*u,yy+8*u);c.textAlign='left'}
+ const any=list.length&&!fallback;
+ byDay(d.n).forEach(x=>{const i=STAGES.findIndex(s=>s.k===x.stage);const bx=gx+i*cw+3*u,by=g0+(x.s-a)*ppm+2*u,bw=cw-6*u,bh=(x.e-x.s)*ppm-4*u;const on=picked(x);
+  c.globalAlpha=any&&!on?.3:1;c.fillStyle=STG[x.stage].c;rr(c,bx,by,bw,bh,8*u);c.fill();if(x.ev){c.setLineDash([6*u,5*u]);c.strokeStyle='#16213a';c.lineWidth=2*u;c.stroke();c.setLineDash([])}
+  if(on){c.globalAlpha=1;c.strokeStyle=T.acc;c.lineWidth=6*u;rr(c,bx,by,bw,bh,8*u);c.stroke()}
+  c.fillStyle='#16213a';const maxS=on?30*u:24*u;const w2=wrap2(c,x.name,bw-14*u,maxS,on?'700':'500',FB,13*u);const lh=w2.s*1.12;const ts=Math.max(13*u,Math.min(19*u,bh*.2));const blockH=w2.lines.length*lh+ts*1.2;let ty=by+(bh-blockH)/2+w2.s*.95;
+  c.font=`${on?'700':'500'} ${w2.s}px ${FB}`;w2.lines.forEach(l=>{c.fillText(l,bx+7*u,ty);ty+=lh});c.font=`600 ${ts}px ${FM}`;c.fillText(`${x.st}–${x.en}`,bx+7*u,ty-lh+w2.s*.2+ts*1.1);
+  if(on){c.fillStyle=T.acc;c.font=`700 ${22*u}px ${FB}`;c.textAlign='right';c.fillText('★',bx+bw-6*u,by+24*u);c.textAlign='left'}
+  c.globalAlpha=1})}
+$('#wp-save').addEventListener('click',async()=>{await drawWall();const cv=$('#cv');const fn=`burock2026_DAY${S.wp.day}_${S.wp.mode}_${SIZES[S.wp.size].w}x${SIZES[S.wp.size].h}.png`;
+ let dl=null;try{dl=window.claude?.use?await window.claude.use('downloads'):null}catch(e){}
+ cv.toBlob(async b=>{if(!b){toast('이미지를 만들지 못했어요');return}
+  if(dl){try{await dl.save({filename:fn,data:b});toast('저장했어요')}catch(e){toast(e&&e.code==='declined'?'저장을 취소했어요':'미리보기 이미지를 길게 눌러 저장해 주세요')}return}
+  const file=new File([b],fn,{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})&&/iPhone|iPad|Android/i.test(navigator.userAgent)){try{await navigator.share({files:[file],title:'부락 2026 배경화면'});return}catch(e){if(e&&e.name==='AbortError')return}}
+  const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast('저장했어요. 안 보이면 이미지를 길게 눌러 저장하세요')},'image/png')});
+
+/* ---------- site map (own drawing after the official guide map layout, 2026notice_19) ---------- */
+const MCAT={fac:'#2b3a67',health:'#e0313b',acc:'#1f6fd1',smoke:'#6b7280',fnb:'#e8820c',fun:'#8a4fd8',move:'#0f8a7a'};
+const MAPK={
+ info:{n:'종합안내소',c:'fac'},wc:{n:'화장실',c:'fac'},bf:{n:'배리어프리',c:'acc'},med:{n:'응급의료',c:'health'},
+ smoke:{n:'흡연구역',c:'smoke'},beer:{n:'주류 부스',c:'fnb'},nurse:{n:'수유실',c:'fac'},kids:{n:'키즈존',c:'fun'},
+ batt:{n:'보조배터리',c:'fac'},glob:{n:'글로벌 지원',c:'fac'},photo:{n:'포토존',c:'fun'},booth:{n:'포토부스',c:'fun'},
+ park:{n:'삼락테마파크',c:'fun'},md:{n:'MD 부스',c:'fun'},locker:{n:'물품보관소',c:'move'},bus:{n:'셔틀 승하차장',c:'move'},ticket:{n:'매표소',c:'move'}};
+const GLYPH={
+ info:'<circle cx="0" cy="-5" r="1.6" fill="#fff" stroke="none"/><path d="M0 -1.5V6"/>',
+ wc:'<text x="0" y="3.4" text-anchor="middle" fill="#fff" stroke="none" style="font:700 9.5px var(--f-mono)">WC</text>',
+ bf:'<circle cx="1" cy="-6.2" r="1.7" fill="#fff" stroke="none"/><path d="M0.5 -3.5V1.5H5L6.8 6"/><path d="M-1.5 -0.5A4.6 4.6 0 1 0 4 4.5"/>',
+ med:'<path d="M-2.2 -6.5h4.4v4.3h4.3v4.4h-4.3v4.3h-4.4v-4.3h-4.3v-4.4h4.3z" fill="#fff" stroke="none"/>',
+ smoke:'<rect x="-7" y="0" width="10.5" height="3.6" rx=".6" fill="#fff" stroke="none"/><rect x="3.8" y="0" width="3" height="3.6" fill="#ffb27a" stroke="none"/><path d="M5 -2.2c1.8-1.2-1-2.4.6-4.2" stroke-width="1.3"/>',
+ beer:'<rect x="-5.5" y="-4" width="8" height="10" rx="1.2"/><path d="M2.5 -1.5h2a2.2 2.2 0 0 1 0 4.4h-2"/><path d="M-5.5 -4c.6-2.6 6.4-2.6 8 0" fill="#fff" stroke="none"/>',
+ nurse:'<rect x="-3.3" y="-2.5" width="6.6" height="9" rx="2.2"/><rect x="-2.2" y="-6.3" width="4.4" height="3" rx=".8" fill="#fff" stroke="none"/><path d="M-3.3 1.2h6.6" stroke-width="1.2"/>',
+ kids:'<circle r="6.6"/><circle cx="-2.3" cy="-1.6" r="1" fill="#fff" stroke="none"/><circle cx="2.3" cy="-1.6" r="1" fill="#fff" stroke="none"/><path d="M-3 1.8q3 3 6 0"/>',
+ batt:'<rect x="-6.5" y="-4" width="11.5" height="8" rx="1.6"/><rect x="5.2" y="-1.6" width="1.8" height="3.2" fill="#fff" stroke="none"/><path d="M0.4 -3L-2 .6h2.1L-.6 3.2 2 -.6H-.1z" fill="#fff" stroke="none"/>',
+ glob:'<circle r="6.6"/><ellipse rx="2.8" ry="6.6"/><path d="M-6.6 0H6.6"/>',
+ photo:'<rect x="-7" y="-3.5" width="14" height="10" rx="2"/><circle cx="0" cy="1.5" r="2.8"/><path d="M-2.8 -3.5l1-2.3h3.6l1 2.3"/>',
+ booth:'<rect x="-5" y="-7" width="10" height="14" rx="1.6"/><rect x="-3" y="-4.8" width="6" height="4.6" rx=".8" fill="#fff" stroke="none"/><path d="M-3 3h6"/>',
+ park:'<circle cy="-1.5" r="5.4"/><path d="M0 -6.9V3.9M-5.4 -1.5H5.4M-3.8 -5.3 3.8 2.3M3.8 -5.3 -3.8 2.3" stroke-width="1"/><path d="M-3.4 7 0 3.9 3.4 7"/>',
+ md:'<path d="M-3 -6.2L-7.2 -3.2-5.2 0-3.2-.9V6.4h6.4V-.9l2 .9 2-3.2L3-6.2q-3 2.6-6 0z"/>',
+ locker:'<rect x="-6.5" y="-3" width="13" height="9.5" rx="1.8"/><path d="M-2.2 -3v-2.6h4.4V-3M-6.5 1.5h13"/>',
+ bus:'<rect x="-6.2" y="-6.5" width="12.4" height="11.5" rx="2.2"/><path d="M-6.2 -1h12.4"/><circle cx="-3.4" cy="6.4" r="1.4" fill="#fff" stroke="none"/><circle cx="3.4" cy="6.4" r="1.4" fill="#fff" stroke="none"/>',
+ ticket:'<path d="M-7.2 -4.2H7.2V-1.4A1.5 1.5 0 0 0 7.2 1.6V4.4H-7.2V1.6A1.5 1.5 0 0 0 -7.2 -1.4Z"/><path d="M2 -4.2V4.4" stroke-dasharray="1.6 1.4" stroke-width="1.2"/>'};
+const PINS=[
+ ['ticket',290,62],['info',290,98],['wc',266,150],['locker',200,188],['bus',118,258],['md',262,322],
+ ['wc',352,240],['booth',404,240],['wc',352,278],['photo',398,306],['bf',398,358],
+ ['med',546,318],['beer',580,334],
+ ['nurse',684,246],['bf',677,276],['wc',670,306],['smoke',662,336],
+ ['wc',576,384],['beer',634,478],
+ ['wc',388,400],['batt',350,440],['info',386,438],['glob',422,438],['wc',508,458],['kids',388,506],['nurse',424,506],['smoke',228,468],
+ ['wc',476,580],['photo',356,690],['park',344,734],
+ ['wc',346,814],['bf',376,814],['smoke',406,814],['beer',412,880],['bf',288,930],['info',318,930],['med',348,930],['beer',412,930]];
+let MAPF='',MAPSEL=-1;
+function mapSVG(){
+ const lab=(x,y,t,size,rot)=>`<text x="${x}" y="${y}" text-anchor="middle" class="mstl" style="font-size:${size||20}px"${rot?` transform="rotate(-90 ${x} ${y})"`:''}>${t}</text>`;
+ const spk=(x,y)=>`<rect x="${x}" y="${y}" width="9" height="14" rx="2" fill="var(--mk)"/><circle cx="${x+4.5}" cy="${y+4}" r="2" fill="var(--s-hl)"/><circle cx="${x+4.5}" cy="${y+10}" r="2" fill="var(--s-hl)"/>`;
+ const stage=(k,name,bx,by,bw,bh,sx,sy,sw,sh,lx,ly,opt={})=>`<g class="mstage" data-stage="${k}" role="button" tabindex="0" aria-label="${name} 스테이지 타임테이블 보기">
+  <rect x="${sx}" y="${sy}" width="${sw}" height="${sh}" rx="6" fill="var(--s-${k})" stroke="var(--mk)" stroke-width="1.6"/>
+  <text x="${sx+sw/2}" y="${sy+sh/2+(opt.vert?0:4)}" text-anchor="middle" class="mstand"${opt.vert?` transform="rotate(-90 ${sx+sw/2} ${sy+sh/2})"`:''}>STANDING</text>
+  <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="3" fill="var(--mk)"/>
+  ${opt.vert?spk(bx+bw/2-4.5,by-16)+spk(bx+bw/2-4.5,by+bh+2):spk(bx-11,by+bh/2-7)+spk(bx+bw+2,by+bh/2-7)}
+  ${lab(lx,ly,name+' STAGE',opt.size,opt.rot)}</g>`;
+ const food=(x,y,w,h)=>`<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="var(--food)" stroke="var(--mk)" stroke-width="1.6"/>
+  <g transform="translate(${x+w/2} ${y+h/2-14})" fill="none" stroke="var(--mk)" stroke-width="2" stroke-linecap="round"><path d="M-9 -8V8M-12 -8V-2Q-9 1 -6 -2V-8M8 8V-8Q3 -6 3 0H8"/></g>
+  <text x="${x+w/2}" y="${y+h/2+16}" text-anchor="middle" class="mstl" style="font-size:15px">FOOD</text><text x="${x+w/2}" y="${y+h/2+32}" text-anchor="middle" class="mstl" style="font-size:15px">LOUNGE</text></g>`;
+ const arrow=(x,y,rot)=>`<g transform="translate(${x} ${y}) rotate(${rot})"><path d="M-12 0H12M-12 0l5-5M-12 0l5 5M12 0l-5-5M12 0l-5 5" stroke="var(--pink)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>`;
+ const grass=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="var(--grass)"/>`;
+ const pins=PINS.map(([k,x,y],i)=>{const m=MAPK[k];const dim=MAPF&&MAPF!==k;const on=MAPF===k||MAPSEL===i;const c=MCAT[m.c];
+  return`<g class="mpin${dim?' dim':''}" data-i="${i}" data-k="${k}" transform="translate(${x} ${y})"><circle r="${on?15.5:13}" fill="${c}" stroke="${on?'var(--pink)':'#fff'}" stroke-width="${on?3.5:2}"/><g transform="scale(${on?1.12:1})" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${GLYPH[k]}</g></g>`}).join('');
+ let call='';if(MAPSEL>=0){const [k,x,y]=PINS[MAPSEL];const t=MAPK[k].n;const w=t.length*14+24;let cx=Math.min(Math.max(x,82+w/2),740-w/2);const up=y>90;const cy=up?y-28:y+28;
+  call=`<g class="mcall" pointer-events="none"><rect x="${cx-w/2}" y="${up?cy-30:cy}" width="${w}" height="30" rx="15" fill="var(--mk)"/><text x="${cx}" y="${up?cy-10:cy+20}" text-anchor="middle" style="font:700 14px var(--f-body);fill:var(--paper)">${t}</text></g>`}
+ return `<svg viewBox="70 30 680 935" role="img" aria-label="행사장 안내도. 북쪽에 매표소와 메인 게이트, 게이트 옆 WAVE, 가운데 SAMROCK, 북동쪽 GREEN, 동쪽 푸드라운지 2곳, 서쪽 무료 구역 HIDDEN, 남쪽 끝 RIVER">
+ <defs><pattern id="mdot" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="var(--grid)"/></pattern></defs>
+ <rect x="70" y="30" width="680" height="935" fill="url(#mdot)"/>
+ <path d="M290 76V116H212V462L120 396V274" fill="none" stroke="var(--pink)" stroke-width="3" stroke-dasharray="1 7" stroke-linecap="round"/>
+ <path d="M212 116H380V150" fill="none" stroke="var(--pink)" stroke-width="3" stroke-dasharray="1 7" stroke-linecap="round"/>
+ <path d="M205 465 L245 428 V178 H560 V68 H712 L668 360 V656 H546 V526 H388 V792 H436 V950 H234 V792 H372 V546 L246 526 Z" fill="var(--ground)" stroke="var(--mk)" stroke-width="2.6" stroke-linejoin="round"/>
+ ${grass(256,266,84,104)}${grass(256,390,112,66)}${grass(256,478,112,36)}${grass(398,348,140,22)}${grass(398,390,48,66)}${grass(398,478,48,36)}${grass(582,232,74,118)}${grass(566,470,0,0)}
+ <path d="M446 390H486A40 44 0 0 1 486 478H446Z" fill="var(--path2)"/>
+ <path d="M246 470H546M380 178V546M256 380H546M546 300V520M388 580H546M380 546V792" stroke="var(--path2)" stroke-width="11" stroke-linecap="round" fill="none"/>
+ <rect x="340" y="452" width="80" height="36" rx="6" fill="var(--path2)"/>
+ <rect x="266" y="548" width="122" height="176" rx="61" fill="var(--ground)" stroke="var(--mk)" stroke-width="2"/>
+ ${stage('wave','WAVE',262,198,70,13,262,216,70,40,297,186,{size:15})}
+ ${stage('samrock','SAMROCK',432,232,104,14,432,252,104,86,484,220,{size:16})}
+ ${stage('green','GREEN',585,80,114,14,585,100,114,112,642,68,{size:16})}
+ ${stage('hidden','HIDDEN',338,598,13,82,290,598,44,82,281,640,{vert:1,size:15,rot:1})}
+ ${stage('river','RIVER',244,840,14,96,262,830,86,116,226,888,{vert:1,size:16,rot:1})}
+ ${food(556,368,102,90)}${food(552,488,106,158)}
+ <g transform="translate(380 165)"><path d="M-34 0V-14A34 30 0 0 1 34 -14V0Z" fill="var(--mk)"/><path d="M-26 -14A26 22 0 0 1 26 -14" stroke="var(--pink)" stroke-width="3" fill="none"/><path d="M-20 -14A20 16 0 0 1 20 -14" stroke="var(--gold)" stroke-width="3" fill="none"/><text y="-2" text-anchor="middle" style="font:400 13px var(--f-display);fill:var(--paper)">MAIN GATE</text></g>
+ <g class="mtag"><rect x="290" y="126" width="54" height="22" rx="4" fill="var(--card)" stroke="var(--pink)"/><text x="317" y="141" text-anchor="middle">재입장</text><rect x="416" y="126" width="68" height="22" rx="4" fill="var(--card)" stroke="var(--pink)"/><text x="450" y="141" text-anchor="middle">최초 입장</text></g>
+ <g transform="translate(330 556) rotate(-12)"><rect x="-26" y="-11" width="52" height="22" rx="11" fill="var(--gold)" stroke="var(--mk)" stroke-width="1.4"/><text y="5" text-anchor="middle" style="font:700 12px var(--f-mono);fill:#16213a">FREE</text></g>
+ ${arrow(380,214,90)}${arrow(622,224,90)}${arrow(658,224,90)}${arrow(264,520,45)}${arrow(380,532,90)}${arrow(400,636,0)}${arrow(544,580,0)}${arrow(380,800,90)}${arrow(430,858,0)}
+ <text x="118" y="232" text-anchor="middle" class="msub">셔틀 승하차장</text>
+ <text x="200" y="166" text-anchor="middle" class="msub">물품보관소</text>
+ <text x="262" y="355" text-anchor="middle" class="msub" style="font-weight:700">MD BOOTH</text>
+ <text x="290" y="46" text-anchor="middle" class="msub">TICKET</text>
+ <g transform="translate(722 64)"><circle r="16" fill="var(--card)" stroke="var(--mk)" stroke-width="1.4"/><path d="M0 -11L5 4H-5Z" fill="var(--pink)"/><text y="13" text-anchor="middle" style="font:700 9px var(--f-mono);fill:var(--mk)">N</text></g>
+ ${pins}${call}
+ </svg>`}
+function renderMap(){$('#map').innerHTML=mapSVG();
+ const ORDER=['wc','smoke','beer','med','bf','info','nurse','batt','glob','locker','bus','ticket','md','booth','photo','kids','park'];const used=ORDER.filter(k=>PINS.some(p=>p[0]===k));const cnt=k=>PINS.filter(p=>p[0]===k).length;
+ $('#map-legend').innerHTML=`<button data-mk="" aria-pressed="${!MAPF}">전체 보기</button>`+used.map(k=>`<button data-mk="${k}" aria-pressed="${MAPF===k}"><svg width="18" height="18" viewBox="-13 -13 26 26" aria-hidden="true"><circle r="12" fill="${MCAT[MAPK[k].c]}"/><g fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${GLYPH[k]}</g></svg>${MAPK[k].n}${cnt(k)>1?` <small>${cnt(k)}</small>`:''}</button>`).join('')}
+$('#map-legend').addEventListener('click',e=>{const b=e.target.closest('[data-mk]');if(!b)return;MAPF=b.dataset.mk;MAPSEL=-1;renderMap()});
+function goStage(k){S.tab='tt';S.view='grid';$('#q').value='';showTab();renderTT();const i=STAGES.findIndex(s=>s.k===k);const sc=$('#tts');if(sc){const col=sc.querySelectorAll('.col')[i];if(col)sc.scrollLeft=col.offsetLeft-44}toast(`${STG[k].name} 스테이지 · DAY ${S.day}`)}
+$('#map').addEventListener('click',e=>{const g=e.target.closest('.mstage');if(g){goStage(g.dataset.stage);return}const p=e.target.closest('.mpin');if(p){const i=+p.dataset.i;MAPSEL=MAPSEL===i?-1:i;renderMap();return}if(MAPSEL>=0){MAPSEL=-1;renderMap()}});
+$('#map').addEventListener('keydown',e=>{const g=e.target.closest('.mstage');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();goStage(g.dataset.stage)}});
+
+/* ---------- boot ---------- */
+function renderAll(){renderBand();renderTT();renderMine();renderFriends();renderWallOpts();renderSheet();renderFun();renderBanner();if(S.tab==='wall')drawWall()}
+$('#fq').addEventListener('input',renderFood);renderFood();
+renderAll();
+if(location.hash&&/br26b-/.test(location.hash)){const f=addFriend(location.hash.slice(1),true);if(f){S.justAdded=f;renderBanner();const fd=DAYS.find(d=>f.picks.some(id=>SETS[id].day===d.n));if(fd&&!DAYS.some(d=>d.date===todayYMD)){S.day=fd.n;renderAll()}}try{history.replaceState(null,'',BASE)}catch(e){}}
+showTab();
+setInterval(()=>{if(S.tab==='tt'&&S.view==='grid'&&DAYS[S.day-1].date===todayYMD&&!$('#q').value){const sc=$('#tts');const t=sc?sc.scrollTop:0;renderTT();const n=$('#tts');if(n)n.scrollTop=t}},60000);
+
+</script>
+</body>
+</html>
