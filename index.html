@@ -81,28 +81,28 @@ h3{font-size:15px;margin:0}
 .seg button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
 
 /* timetable grid */
-.tt-scroll{overflow:auto;max-height:72vh;border:1.5px solid var(--ink);border-radius:8px;background:var(--card);overscroll-behavior:contain}
-.tt{position:relative;display:grid;grid-template-columns:44px repeat(5,minmax(118px,1fr));min-width:640px}
+.tt-scroll{border:1.5px solid var(--ink);border-radius:8px;background:var(--card)}
+.tt{position:relative;display:grid;grid-template-columns:34px repeat(5,minmax(0,1fr))}
 .tt-head{position:sticky;top:0;z-index:3;display:contents}
-.tt-head>div{position:sticky;top:0;z-index:3;padding:8px 4px 6px;text-align:center;font-family:var(--f-display);font-size:15px;letter-spacing:.02em;border-bottom:1.5px solid var(--ink);line-height:1.1}
+.tt-head>div{position:sticky;top:var(--navh,58px);z-index:3;padding:7px 2px 5px;text-align:center;font-family:var(--f-display);font-size:clamp(11px,3.2vw,15px);letter-spacing:.01em;border-bottom:1.5px solid var(--ink);line-height:1.1;overflow:hidden}
 .tt-head>div small{display:block;font-family:var(--f-mono);font-size:10px;letter-spacing:.06em}
-.tt-head .corner{left:0;z-index:4;background:var(--card)}
-.axis{position:sticky;left:0;z-index:2;background:var(--card);border-right:1px solid var(--line)}
-.axis span{position:absolute;right:6px;font-family:var(--f-mono);font-size:11px;color:var(--muted);transform:translateY(-50%)}
+.tt-head .corner{background:var(--card)}
+.axis{position:relative;background:var(--card);border-right:1px solid var(--line)}
+.axis span{position:absolute;right:4px;font-family:var(--f-mono);font-size:10.5px;color:var(--muted);transform:translateY(-50%)}
 .col{position:relative;border-right:1px solid var(--line)}
 .col:last-child{border-right:0}
 .hr{position:absolute;left:0;right:0;border-top:1px dashed var(--line)}
-.blk{position:absolute;left:4px;right:4px;border-radius:6px;padding:4px 6px;cursor:pointer;border:1.5px solid transparent;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden;color:var(--ink)}
-.blk b{font-size:13px;line-height:1.15;font-weight:700;overflow-wrap:anywhere}
-.blk i{font-style:normal;font-family:var(--f-mono);font-size:10.5px;opacity:.85}
-.blk.hl b{font-family:var(--f-display);font-weight:400;font-size:15px;letter-spacing:.02em}
+.blk{position:absolute;left:2px;right:2px;border-radius:5px;padding:3px 4px;cursor:pointer;border:1.5px solid transparent;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden;color:var(--ink)}
+.blk b{font-size:clamp(10.5px,2.9vw,13px);line-height:1.12;font-weight:700;overflow-wrap:normal;word-break:keep-all;hyphens:none}
+.blk i{font-style:normal;font-family:var(--f-mono);font-size:clamp(8.5px,2.3vw,10.5px);opacity:.85;white-space:nowrap}
+.blk.hl b{font-family:var(--f-display);font-weight:400;font-size:clamp(11px,3.2vw,15px);letter-spacing:.01em}
 .blk.ev{border-style:dashed;border-color:var(--muted)}
 .blk.on{border:2.5px solid var(--ink);box-shadow:0 0 0 2px var(--paper) inset}
 .blk.on::after{content:"★";position:absolute;top:2px;right:5px;font-size:12px;color:var(--pink)}
 .blk.dim{opacity:.28}
 .blk .frd{display:flex;gap:2px;flex-wrap:wrap}
 .blk .frd em{font-style:normal;font-size:9.5px;background:var(--ink);color:var(--paper);border-radius:3px;padding:0 3px}
-.nowline{position:absolute;left:44px;right:0;border-top:2px solid var(--pink);z-index:2;pointer-events:none}
+.nowline{position:absolute;left:34px;right:0;border-top:2px solid var(--pink);z-index:2;pointer-events:none}
 .nowline span{position:absolute;left:0;top:-10px;background:var(--pink);color:var(--on-pink);font-family:var(--f-mono);font-size:10px;padding:0 4px;border-radius:2px}
 .st-samrock{background:var(--s-samrock)}.st-green{background:var(--s-green)}.st-river{background:var(--s-river)}.st-wave{background:var(--s-wave)}.st-hidden{background:var(--s-hidden)}
 .gate{grid-column:1/-1;text-align:center;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;background:var(--ink);color:var(--paper);padding:4px}
@@ -169,6 +169,10 @@ textarea{border:1.5px solid var(--line);background:var(--card);border-radius:6px
 footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:grid;gap:4px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
+.tt-head>div small{font-size:clamp(7.5px,2vw,10px)}
+@media (max-width:420px){.tt-head>div small{display:none}.blk i .e{display:none}.blk b{font-size:clamp(10px,2.75vw,12px);letter-spacing:-.01em}.blk.on::after{font-size:10px;right:3px}}
+.tt .col,.tt .axis{touch-action:pan-y}
+@media (max-width:420px){.axis .mm{display:none}}
 html,body{margin:0}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 img{max-width:100%}
@@ -554,12 +558,13 @@ const frOf=x=>S.friends.filter(f=>f.picks.includes(x.id)).map(f=>f.name);
 const T0=11*60+20,T1=22*60+10,PPM=1.7;
 function renderTT(){const q=$('#q').value.trim().toLowerCase();document.querySelectorAll('#view button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.view));
  if(S.view==='list'||q){renderList(q);return}
- const d=S.day,H=(T1-T0)*PPM;let axis='';for(let m=12*60;m<=22*60;m+=60)axis+=`<span style="top:${(m-T0)*PPM}px">${m/60}:00</span>`;
+ const d=S.day,H=(T1-T0)*PPM;let axis='';for(let m=12*60;m<=22*60;m+=60)axis+=`<span style="top:${(m-T0)*PPM}px">${m/60}<small class="mm">:00</small></span>`;
  let hrs='';for(let m=12*60;m<=22*60;m+=60)hrs+=`<div class="hr" style="top:${(m-T0)*PPM}px"></div>`;
  const cols=STAGES.map(st=>`<div class="col" style="height:${H}px">${hrs}${byDay(d).filter(x=>x.stage===st.k).map(x=>{const fr=frOf(x);const anyPick=byDay(d).some(picked);
-  return`<button class="blk st-${st.k}${x.head?' hl':''}${x.ev?' ev':''}${picked(x)?' on':''}" data-id="${x.id}" style="top:${(x.s-T0)*PPM+1}px;height:${(x.e-x.s)*PPM-2}px" aria-label="${esc(x.name)} ${x.st}~${x.en} ${st.name}${picked(x)?' 담김':''}"><b>${esc(x.name)}</b><i>${x.st}–${x.en}</i>${fr.length?`<span class="frd">${fr.map(n=>`<em>${esc(n)}</em>`).join('')}</span>`:''}</button>`}).join('')}</div>`).join('');
+  return`<button class="blk st-${st.k}${x.head?' hl':''}${x.ev?' ev':''}${picked(x)?' on':''}" data-id="${x.id}" style="top:${(x.s-T0)*PPM+1}px;height:${(x.e-x.s)*PPM-2}px" aria-label="${esc(x.name)} ${x.st}~${x.en} ${st.name}${picked(x)?' 담김':''}"><b>${esc(x.name)}</b><i><span>${x.st}</span><span class="e">–${x.en}</span></i>${fr.length?`<span class="frd">${fr.map(n=>`<em>${esc(n)}</em>`).join('')}</span>`:''}</button>`}).join('')}</div>`).join('');
  let now='';if(DAYS[d-1].date===todayYMD){const t=new Date(),m=t.getHours()*60+t.getMinutes();if(m>=T0&&m<=T1)now=`<div class="nowline" style="top:${(m-T0)*PPM+38}px"><span>${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}</span></div>`}
- $('#tt-wrap').innerHTML=`<div class="tt-scroll" id="tts"><div class="tt"><div class="tt-head"><div class="corner"></div>${STAGES.map(st=>`<div class="st-${st.k}">${st.name}<small>${st.free?'STAGE · FREE':'STAGE'}</small></div>`).join('')}</div><div class="axis" style="height:${H}px">${axis}</div>${cols}${now}</div></div>`}
+ document.documentElement.style.setProperty('--navh',(document.querySelector('#tabs').offsetHeight)+'px');$('#tt-wrap').innerHTML=`<div class="tt-scroll" id="tts"><div class="tt"><div class="tt-head"><div class="corner"></div>${STAGES.map(st=>`<div class="st-${st.k}">${st.name}<small>${st.free?'STAGE · FREE':'STAGE'}</small></div>`).join('')}</div><div class="axis" style="height:${H}px">${axis}</div>${cols}${now}</div></div>`;fitNames()}
+function fitNames(){document.querySelectorAll('#tts .blk b').forEach(b=>{b.style.fontSize='';let s=parseFloat(getComputedStyle(b).fontSize);let n=0;while(b.scrollWidth>b.clientWidth+1&&s>8.5&&n<12){s-=.5;b.style.fontSize=s+'px';n++}if(b.scrollWidth>b.clientWidth+1)b.style.overflowWrap='anywhere'})}
 function renderList(q){const pool=(q?SETS.filter(x=>x.name.toLowerCase().includes(q)):byDay(S.day)).slice().sort((a,b)=>a.day-b.day||a.s-b.s||STAGES.findIndex(s=>s.k===a.stage)-STAGES.findIndex(s=>s.k===b.stage));
  $('#tt-wrap').innerHTML=`<ol class="list">${pool.map(x=>{const fr=frOf(x);return`<li class="row"><button class="star" aria-pressed="${picked(x)}" data-star="${x.id}" aria-label="${esc(x.name)} 담기">★</button><div style="min-width:0"><div class="nm">${esc(x.name)}</div><div class="meta">${q?`<span>DAY ${x.day}</span>`:''}<span>${x.st}–${x.en}</span><span class="pill st-${x.stage}">${x.sname}</span>${x.head?'<span class="tag hl">HEADLINER</span>':''}${x.ev?'<span class="tag">HIDDEN EVENT</span>':''}${fr.length?`<span class="tag fr">${fr.map(esc).join('·')}도 봄</span>`:''}</div></div>${igBtn(x)}</li>`}).join('')||'<li class="empty">검색 결과가 없어요</li>'}</ol>`}
 $('#q').addEventListener('input',renderTT);
@@ -763,7 +768,7 @@ function renderMap(){$('#map').innerHTML=mapSVG();
  const ORDER=['wc','smoke','beer','med','bf','info','nurse','batt','glob','locker','bus','ticket','md','booth','photo','kids','park'];const used=ORDER.filter(k=>PINS.some(p=>p[0]===k));const cnt=k=>PINS.filter(p=>p[0]===k).length;
  $('#map-legend').innerHTML=`<button data-mk="" aria-pressed="${!MAPF}">전체 보기</button>`+used.map(k=>`<button data-mk="${k}" aria-pressed="${MAPF===k}"><svg width="18" height="18" viewBox="-13 -13 26 26" aria-hidden="true"><circle r="12" fill="${MCAT[MAPK[k].c]}"/><g fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${GLYPH[k]}</g></svg>${MAPK[k].n}${cnt(k)>1?` <small>${cnt(k)}</small>`:''}</button>`).join('')}
 $('#map-legend').addEventListener('click',e=>{const b=e.target.closest('[data-mk]');if(!b)return;MAPF=b.dataset.mk;MAPSEL=-1;renderMap()});
-function goStage(k){S.tab='tt';S.view='grid';$('#q').value='';showTab();renderTT();const i=STAGES.findIndex(s=>s.k===k);const sc=$('#tts');if(sc){const col=sc.querySelectorAll('.col')[i];if(col)sc.scrollLeft=col.offsetLeft-44}toast(`${STG[k].name} 스테이지 · DAY ${S.day}`)}
+function goStage(k){S.tab='tt';S.view='grid';$('#q').value='';showTab();renderTT();const sc=$('#tts');if(sc)sc.scrollIntoView({block:'start'});toast(`${STG[k].name} 스테이지 · DAY ${S.day}`)}
 $('#map').addEventListener('click',e=>{const g=e.target.closest('.mstage');if(g){goStage(g.dataset.stage);return}const p=e.target.closest('.mpin');if(p){const i=+p.dataset.i;MAPSEL=MAPSEL===i?-1:i;renderMap();return}if(MAPSEL>=0){MAPSEL=-1;renderMap()}});
 $('#map').addEventListener('keydown',e=>{const g=e.target.closest('.mstage');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();goStage(g.dataset.stage)}});
 
@@ -771,9 +776,11 @@ $('#map').addEventListener('keydown',e=>{const g=e.target.closest('.mstage');if(
 function renderAll(){renderBand();renderTT();renderMine();renderFriends();renderWallOpts();renderSheet();renderFun();renderBanner();if(S.tab==='wall')drawWall()}
 $('#fq').addEventListener('input',renderFood);renderFood();
 renderAll();
+window.addEventListener('resize',()=>{clearTimeout(window.__fr);window.__fr=setTimeout(()=>{if($('#tts'))fitNames()},150)});
+if(document.fonts)document.fonts.ready.then(()=>{if($('#tts'))fitNames()});
 if(location.hash&&/br26b-/.test(location.hash)){const f=addFriend(location.hash.slice(1),true);if(f){S.justAdded=f;renderBanner();const fd=DAYS.find(d=>f.picks.some(id=>SETS[id].day===d.n));if(fd&&!DAYS.some(d=>d.date===todayYMD)){S.day=fd.n;renderAll()}}try{history.replaceState(null,'',BASE)}catch(e){}}
 showTab();
-setInterval(()=>{if(S.tab==='tt'&&S.view==='grid'&&DAYS[S.day-1].date===todayYMD&&!$('#q').value){const sc=$('#tts');const t=sc?sc.scrollTop:0;renderTT();const n=$('#tts');if(n)n.scrollTop=t}},60000);
+setInterval(()=>{if(S.tab!=='tt'||S.view!=='grid'||DAYS[S.day-1].date!==todayYMD||$('#q').value||S.open!=null)return;const t=new Date(),m=t.getHours()*60+t.getMinutes(),nl=document.querySelector('.nowline');if(!nl)return;if(m<T0||m>T1){nl.remove();return}nl.style.top=((m-T0)*PPM+38)+'px';nl.querySelector('span').textContent=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')},60000);
 
 </script>
 </body>
