@@ -175,6 +175,7 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
 @media (max-width:420px){.axis .mm{display:none}}
 .blk.cx{background:repeating-linear-gradient(135deg,var(--card) 0 6px,var(--line) 6px 12px)!important;opacity:.85}.blk.cx b{text-decoration:line-through;font-weight:600}.blk.cx .cxl{color:var(--warn);font-weight:700;font-family:var(--f-body);opacity:1}
 .alert{border:2px solid var(--warn);background:var(--card);border-radius:8px;padding:10px 14px;font-size:14px;display:grid;gap:3px}.alert b{color:var(--warn)}
+.sheet>.meta:first-of-type{padding-right:34px}
 html,body{margin:0}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 img{max-width:100%}
@@ -222,7 +223,7 @@ img{max-width:100%}
 
   <div class="banner" id="fr-banner" hidden></div>
 
-  <div class="alert" id="alert"><b>10/2(금) 헤드라이너 AVENGED SEVENFOLD 출연 취소</b><span>멤버 건강 문제로 취소됐어요(10/1 공식 공지). SAMROCK 20:40 대체 공연은 아직 발표 전이에요. 티켓은 10/4(일) 22:00까지 예스24에서 수수료 없이 취소할 수 있어요. <a href="https://busanrockfestival.com/notice/2026notice_36/" target="_blank" rel="noopener">공지 보기</a></span></div>
+  <div class="alert" id="alert"><b>10/2(금) 헤드라이너 변경: AVENGED SEVENFOLD → MEGADETH</b><span>A7X가 멤버 건강 문제로 출연을 취소했고(10/1), 그 자리를 MEGADETH가 맡아요. 메가데스는 <b style="color:inherit">금·토 이틀 모두</b> 나와요. 금요일 공연 시간은 조금 조정될 예정이고 확정되면 공지된대요. <a href="https://www.instagram.com/p/Dd-d4J3mo-Z/" target="_blank" rel="noopener">공식 게시물</a> · <a href="https://busanrockfestival.com/notice/2026notice_36/" target="_blank" rel="noopener">취소 공지</a> · 티켓은 10/4(일) 22:00까지 예스24에서 수수료 없이 취소 가능</span></div>
 
   <div class="band" role="group" aria-label="날짜 선택" id="band"></div>
 
@@ -455,7 +456,10 @@ const TT={
 const HEAD={1:'AVENGED SEVENFOLD',2:'MEGADETH',3:'THE LIBERTINES'};
 /* changes after the timetable was published */
 const CANCEL={'AVENGED SEVENFOLD':{why:'멤버 건강 문제로 출연 취소',date:'10/1',url:'https://busanrockfestival.com/notice/2026notice_36/'}};
-const HEADLBL=d=>CANCEL[HEAD[d]]?'A7X 출연 취소':HEAD[d];
+/* sets added after the original timetable — appended at the END so earlier ids (and share links) stay valid.
+   tbc: time not final yet (placed in the original slot) */
+const ADDED=[{day:1,stage:'samrock',name:'MEGADETH',st:'20:40',en:'22:00',tbc:true,note:'A7X 대체 헤드라이너',url:'https://www.instagram.com/p/Dd-d4J3mo-Z/',src:'10/2 공식 인스타 [10월 2일(금) 출연진 변동 안내]'}];
+const HEADLBL=d=>d===1?'MEGADETH (변경)':HEAD[d];
 
 /* Instagram — o: tagged by the festival (FINAL LINEUP post @busanrockfest, 1st LINEUP notice), s: found by web search (2nd lineup etc.) */
 const IG_O={'THE LIBERTINES':'thelibertines','브로콜리너마저':'band_broccoliyoutoo','장범준':'jangtigerjune','IDIOTAPE':'idiotapeofficial','강산에':'kang_saneh','D82':'d82official','LUCKLIFE':'lucklife_official_jp','산보':'bandsanbo','알레프':'alephriends','N.Flying':'letsroll_nf','Elephant Gym':'elephant_gym_official','J.E.B':'jebsensei','정우':'6th_saturday','Tokai':'tokai_official_','hrtz.wav':'hrtzwav','HOA':'band_hoa','GOODMOOD':'goodmoodband_','권진아':'kwonjinah_official','단감자':'dangamjah','브로큰 발렌타인':'brokenvalentine_official','세이수미':'saysueme','신인류':'shin_in_ryu','ADOY':'adoyband','야자수':'yajasuband','AxMxP':'axmxp_official','Wah Wah Wah':'w.a.h.w.a.h.w.a.h','Wendy Wander':'wendywanderofficial','윤마치':'yooonmarch','Chivan':'chivanfromthemoon_','Henry Moodie':'henrymoodie','HYPNOSIS THERAPY':'hypnosistherapy_','놀이도감':'noridogam','데이먼스 이어':'littlemushydickens','LUCY':'band_lucy','BØJEONG':'b0jeong_official','심아일랜드':'simile_land','AiNA THE END':'ainatheend_official','정수민':'soomofficial','KIK':'bandkikofficial','타이거디스코':'tgerdsco','Tuesday Beach Club':'tuesdaybeachclub','HANABIE.':'ha_na_bie_','희규':'ooxstalgia','나타샤':'bandnatasha_','노아코스트':'noacoast_official','블낫블':'off.bnb','아스라이':'asraii.official','퓨처피어클럽':'futurepeerclub','베이루트택시':'brtx_band','Eddie and the Bricks':'eddieandthebricks','천둥오리':'che0ndung0ri','최춘목밴드':'bandcmc','To More Raw':'tomoreraw_official','김푸름':'pureum_kim_official','데이네버체인지':'theynevxrchange','시인을 위하여':'for_the_poet.official','아사달':'asadal_official','포져군단':'poseridiott',
@@ -527,6 +531,7 @@ const SETS=[];
 const mins=t=>{const[h,m]=t.split(':').map(Number);return h*60+m};
 [1,2,3].forEach(d=>STAGES.forEach(st=>TT[d][st.k].split(';').forEach(s=>{const[n0,a,b,note]=s.split('|');const ev=n0.startsWith('*');const name=ev?n0.slice(1):n0;const ig=igOf(name);
  SETS.push({id:SETS.length,day:d,stage:st.k,sname:st.name,name,st:a,en:b,s:mins(a),e:mins(b),note:note||'',ev,head:HEAD[d]===name,cx:!!CANCEL[name],ig:ig[0]||'',igf:ig[1]||''})})));
+ADDED.forEach(a=>{const ig=igOf(a.name);SETS.push({id:SETS.length,day:a.day,stage:a.stage,sname:STAGES.find(s=>s.k===a.stage).name,name:a.name,st:a.st,en:a.en,s:mins(a.st),e:mins(a.en),note:a.note||'',ev:false,head:true,cx:false,tbc:!!a.tbc,add:a,ig:ig[0]||'',igf:ig[1]||''})});
 const byDay=d=>SETS.filter(x=>x.day===d);
 const STG=Object.fromEntries(STAGES.map(s=>[s.k,s]));
 const DAYS=[1,2,3].map(n=>Object.assign({n},TT[n]));
@@ -567,8 +572,8 @@ function renderTT(){const q=$('#q').value.trim().toLowerCase();document.querySel
  if(S.view==='list'||q){renderList(q);return}
  const d=S.day,H=(T1-T0)*PPM;let axis='';for(let m=12*60;m<=22*60;m+=60)axis+=`<span style="top:${(m-T0)*PPM}px">${m/60}<small class="mm">:00</small></span>`;
  let hrs='';for(let m=12*60;m<=22*60;m+=60)hrs+=`<div class="hr" style="top:${(m-T0)*PPM}px"></div>`;
- const cols=STAGES.map(st=>`<div class="col" style="height:${H}px">${hrs}${byDay(d).filter(x=>x.stage===st.k).map(x=>{const fr=frOf(x);const anyPick=byDay(d).some(picked);
-  return`<button class="blk st-${st.k}${x.head?' hl':''}${x.ev?' ev':''}${x.cx?' cx':''}${picked(x)?' on':''}" data-id="${x.id}" style="top:${(x.s-T0)*PPM+1}px;height:${(x.e-x.s)*PPM-2}px" aria-label="${esc(x.name)} ${x.st}~${x.en} ${st.name}${picked(x)?' 담김':''}"><b>${esc(x.name)}</b>${x.cx?'<i class="cxl">출연 취소</i>':`<i><span>${x.st}</span><span class="e">–${x.en}</span></i>`}${fr.length?`<span class="frd">${fr.map(n=>`<em>${esc(n)}</em>`).join('')}</span>`:''}</button>`}).join('')}</div>`).join('');
+ const cols=STAGES.map(st=>`<div class="col" style="height:${H}px">${hrs}${byDay(d).filter(x=>x.stage===st.k&&!x.cx).map(x=>{const fr=frOf(x);const anyPick=byDay(d).some(picked);
+  return`<button class="blk st-${st.k}${x.head?' hl':''}${x.ev?' ev':''}${x.cx?' cx':''}${picked(x)?' on':''}" data-id="${x.id}" style="top:${(x.s-T0)*PPM+1}px;height:${(x.e-x.s)*PPM-2}px" aria-label="${esc(x.name)} ${x.st}~${x.en} ${st.name}${picked(x)?' 담김':''}"><b>${esc(x.name)}</b>${x.cx?'<i class="cxl">출연 취소</i>':x.tbc?'<i class="cxl" style="color:var(--ink)">시간 조정 예정</i>':`<i><span>${x.st}</span><span class="e">–${x.en}</span></i>`}${fr.length?`<span class="frd">${fr.map(n=>`<em>${esc(n)}</em>`).join('')}</span>`:''}</button>`}).join('')}</div>`).join('');
  let now='';if(DAYS[d-1].date===todayYMD){const t=new Date(),m=t.getHours()*60+t.getMinutes();if(m>=T0&&m<=T1)now=`<div class="nowline" style="top:${(m-T0)*PPM+38}px"><span>${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}</span></div>`}
  document.documentElement.style.setProperty('--navh',(document.querySelector('#tabs').offsetHeight)+'px');$('#tt-wrap').innerHTML=`<div class="tt-scroll" id="tts"><div class="tt"><div class="tt-head"><div class="corner"></div>${STAGES.map(st=>`<div class="st-${st.k}">${st.name}<small>${st.free?'STAGE · FREE':'STAGE'}</small></div>`).join('')}</div><div class="axis" style="height:${H}px">${axis}</div>${cols}${now}</div></div>`;fitNames()}
 function fitNames(){document.querySelectorAll('#tts .blk b').forEach(b=>{b.style.fontSize='';let s=parseFloat(getComputedStyle(b).fontSize);let n=0;while(b.scrollWidth>b.clientWidth+1&&s>8.5&&n<12){s-=.5;b.style.fontSize=s+'px';n++}if(b.scrollWidth>b.clientWidth+1)b.style.overflowWrap='anywhere'})}
@@ -582,17 +587,17 @@ $('#tt-wrap').addEventListener('click',e=>{const s=e.target.closest('[data-star]
 function openSheet(id){S.open=id;renderSheet()}
 function closeSheet(){S.open=null;$('#sheet').hidden=true}
 function renderSheet(){if(S.open==null){$('#sheet').hidden=true;return}const x=SETS[S.open];const fr=frOf(x);const clash=byDay(x.day).filter(y=>y.id!==x.id&&!y.cx&&picked(y)&&y.s<x.e&&x.s<y.e);
- $('#sheet').innerHTML=`<button class="x" aria-label="닫기" data-close>×</button><div class="meta"><span>DAY ${x.day} · ${DAYS[x.day-1].label}</span><span class="pill st-${x.stage}">${x.sname} STAGE${STG[x.stage].free?' · FREE':''}</span>${x.note?`<span class="tag">${esc(x.note)}</span>`:''}</div><h3${x.cx?' style="text-decoration:line-through"':''}>${esc(x.name)}</h3><div class="meta" style="font-size:15px;color:var(--ink)"><b>${x.st} – ${x.en}</b><span>(${x.e-x.s}분)</span></div>${x.cx?`<div class="callout"><b>${CANCEL[x.name].why}</b> (${CANCEL[x.name].date} 공식 공지). 이 시간 대체 공연은 아직 발표되지 않았어요. 티켓은 10/4(일) 22:00까지 예스24에서 수수료 없이 취소할 수 있어요. <a href="${CANCEL[x.name].url}" target="_blank" rel="noopener">공지 보기</a></div>`:''}${fr.length?`<p class="note">같이 담은 친구: ${fr.map(esc).join(', ')}</p>`:''}${clash.length&&!picked(x)?`<p class="warnline">담아 둔 ${clash.map(c=>esc(c.name)).join(', ')}와 시간이 겹쳐요</p>`:''}<div class="btnrow">${x.cx&&!picked(x)?'':`<button class="btn ${picked(x)?'ghost':'pink'}" data-toggle="${x.id}">${picked(x)?'★ 빼기':'★ 내 시간표에 담기'}</button>`}${igBtn(x)}</div>`;$('#sheet').hidden=false}
+ $('#sheet').innerHTML=`<button class="x" aria-label="닫기" data-close>×</button><div class="meta"><span>DAY ${x.day} · ${DAYS[x.day-1].label}</span><span class="pill st-${x.stage}">${x.sname} STAGE${STG[x.stage].free?' · FREE':''}</span>${x.note?`<span class="tag">${esc(x.note)}</span>`:''}</div><h3${x.cx?' style="text-decoration:line-through"':''}>${esc(x.name)}</h3><div class="meta" style="font-size:15px;color:var(--ink)"><b>${x.tbc?'시간 확정 전':x.st+' – '+x.en}</b>${x.tbc?'':`<span>(${x.e-x.s}분)</span>`}</div>${x.tbc?`<div class="callout"><b>10/2(금) SAMROCK 헤드라이너로 확정</b>됐어요. 무대 전환·준비 때문에 공연 시간이 조금 조정될 예정이고, 정확한 시간은 확정되는 대로 공지된대요. 원래 헤드라이너 시간(20:40–22:00) 자리에 임시로 표시했어요. 메가데스는 10/3(토)에도 나와요. <a href="${x.add.url}" target="_blank" rel="noopener">공식 게시물</a></div>`:''}${x.cx?`<div class="callout"><b>${CANCEL[x.name].why}</b> (${CANCEL[x.name].date} 공식 공지). 이 자리는 MEGADETH가 대신해요(10/2 공식 발표, 시간은 조정 예정). 티켓은 10/4(일) 22:00까지 예스24에서 수수료 없이 취소할 수 있어요. <a href="${CANCEL[x.name].url}" target="_blank" rel="noopener">공지 보기</a></div>`:''}${fr.length?`<p class="note">같이 담은 친구: ${fr.map(esc).join(', ')}</p>`:''}${clash.length&&!picked(x)?`<p class="warnline">담아 둔 ${clash.map(c=>esc(c.name)).join(', ')}와 시간이 겹쳐요</p>`:''}<div class="btnrow">${x.cx&&!picked(x)?'':`<button class="btn ${picked(x)?'ghost':'pink'}" data-toggle="${x.id}">${picked(x)?'★ 빼기':'★ 내 시간표에 담기'}</button>`}${igBtn(x)}</div>`;$('#sheet').hidden=false}
 $('#sheet').addEventListener('click',e=>{if(e.target.closest('[data-close]')){closeSheet();return}const t=e.target.closest('[data-toggle]');if(t){togglePick(+t.dataset.toggle);toast(S.picks[+t.dataset.toggle]?'내 시간표에 담았어요':'뺐어요')}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
 
 /* ---------- mine ---------- */
 function dayPicks(n){return byDay(n).filter(x=>picked(x)&&!x.cx).sort((a,b)=>a.s-b.s)}
 const cxPicks=n=>byDay(n).filter(x=>picked(x)&&x.cx);
-function renderMine(){const d=DAYS[S.day-1];const list=dayPicks(S.day);$('#mine-h').textContent=`DAY ${d.n} · ${d.label} — ${list.length}개 무대`;const cxs=cxPicks(S.day);const cxh=cxs.map(x=>`<div class="callout" style="margin-bottom:8px"><b>${esc(x.name)} ${x.st}</b> 무대가 취소됐어요 (${CANCEL[x.name].why}). 시간표에서 뺐어요. <button class="tiny" data-un="${x.id}">목록에서 지우기</button></div>`).join('');
+function renderMine(){const d=DAYS[S.day-1];const list=dayPicks(S.day);$('#mine-h').textContent=`DAY ${d.n} · ${d.label} — ${list.length}개 무대`;const cxs=cxPicks(S.day);const cxh=cxs.map(x=>`<div class="callout" style="margin-bottom:8px"><b>${esc(x.name)} ${x.st}</b> 무대가 취소됐어요 (${CANCEL[x.name].why}). 시간표에서 뺐어요. 같은 자리는 MEGADETH가 대신해요. <button class="tiny" data-un="${x.id}">목록에서 지우기</button></div>`).join('');
  if(!list.length){$('#mine').innerHTML=cxh+`<div class="empty">아직 담은 무대가 없어요. ‘타임테이블’에서 무대를 눌러 담아 보세요.</div>`;return}
  let h='';list.forEach((x,i)=>{const prev=list[i-1];if(prev){const g=x.s-prev.e;const move=prev.stage!==x.stage;h+=`<div class="gap${g<0?' bad':''}">${g<0?`${-g}분 겹쳐요 · ${prev.name} 끝나기 전에 시작`:`${g}분 쉬고${move?` → ${x.sname}로 이동`:' · 같은 스테이지'}`}</div>`}
-  h+=`<div class="pick${(prev&&x.s<prev.e)||(list[i+1]&&list[i+1].s<x.e)?' clash':''}"><div class="tm">${x.st}<small>~${x.en}</small></div><div style="min-width:0"><div class="nm">${esc(x.name)}</div><div class="meta"><span class="pill st-${x.stage}">${x.sname}</span>${x.head?'<span class="tag hl">HEADLINER</span>':''}${x.note?`<span>${esc(x.note)}</span>`:''}</div></div><div style="display:grid;gap:6px;justify-items:end">${igBtn(x)}<button class="tiny" data-un="${x.id}">빼기</button></div></div>`});
+  h+=`<div class="pick${(prev&&x.s<prev.e)||(list[i+1]&&list[i+1].s<x.e)?' clash':''}"><div class="tm">${x.st}<small>${x.tbc?'시간 조정':'~'+x.en}</small></div><div style="min-width:0"><div class="nm">${esc(x.name)}</div><div class="meta"><span class="pill st-${x.stage}">${x.sname}</span>${x.head?'<span class="tag hl">HEADLINER</span>':''}${x.note?`<span>${esc(x.note)}</span>`:''}</div></div><div style="display:grid;gap:6px;justify-items:end">${igBtn(x)}<button class="tiny" data-un="${x.id}">빼기</button></div></div>`});
  $('#mine').innerHTML=cxh+h}
 $('#mine').addEventListener('click',e=>{const b=e.target.closest('[data-un]');if(b)togglePick(+b.dataset.un)});
 
@@ -656,11 +661,11 @@ async function drawWall(){await ensureFonts();const T=THEMES[S.wp.theme]||THEMES
  y+=108*u;c.fillStyle=T.ink;c.font=`400 ${112*u}px ${FD}`;c.fillText(d.label.replace(' ','. '),L,y);c.font=`400 ${52*u}px ${FD}`;c.fillStyle=T.acc;c.textAlign='right';c.fillText(d.en,R,y);c.textAlign='left';
  y+=42*u;c.font=`500 ${27*u}px ${FB}`;c.fillStyle=T.sub;c.fillText('삼락생태공원 · GATE OPEN 10:00',L,y);
  y+=30*u;c.fillStyle=T.ink;c.fillRect(L,y,CW,4*u);y+=26*u;
- c.font=`600 ${24*u}px ${FM}`;c.fillStyle=T.sub;c.fillText(fallback?(list.length?'HEADLINER':'SAMROCK 20:40 · 헤드라이너 출연 취소 · 대체 공연 미정'):`MY STAGES · ${list.length}`,L,y+24*u);y+=50*u;
+ c.font=`600 ${24*u}px ${FM}`;c.fillStyle=T.sub;c.fillText(fallback?'HEADLINER':`MY STAGES · ${list.length}`,L,y+24*u);y+=50*u;
  const bottomLimit=H*.835,avail=bottomLimit-y,rowH=Math.min(158*u,Math.max(70*u,avail/Math.max(list.length,1)));const shown=Math.min(list.length,Math.floor(avail/rowH));
  const tW=190*u;
  list.slice(0,shown).forEach((x,i)=>{const top=y+i*rowH,big=Math.min(60*u,rowH*.4),sm=Math.min(26*u,rowH*.2);const nameY=top+rowH*.45;
-  c.font=`600 ${Math.min(40*u,rowH*.28)}px ${FM}`;c.fillStyle=T.acc;c.fillText(x.st,L,nameY);c.font=`500 ${Math.min(24*u,rowH*.17)}px ${FM}`;c.fillStyle=T.sub;c.fillText('~ '+x.en,L,nameY+Math.min(34*u,rowH*.24));
+  c.font=`600 ${Math.min(40*u,rowH*.28)}px ${FM}`;c.fillStyle=T.acc;c.fillText(x.st,L,nameY);c.font=`500 ${Math.min(24*u,rowH*.17)}px ${FM}`;c.fillStyle=T.sub;c.fillText(x.tbc?'시간 조정':'~ '+x.en,L,nameY+Math.min(34*u,rowH*.24));
   const nx=L+tW,nw=R-nx;fitFont(c,x.name,nw,big,'400',FD,big*.5);c.fillStyle=T.ink;c.fillText(x.name,nx,nameY);
   const pill=x.sname+' STAGE';c.font=`600 ${sm}px ${FM}`;const pw=c.measureText(pill).width+22*u,ph=sm*1.5,py=nameY+sm*.55;c.fillStyle=STG[x.stage].c;rr(c,nx,py,pw,ph,ph/2);c.fill();c.fillStyle='#16213a';c.fillText(pill,nx+11*u,py+ph*.72);
   if(x.head){c.font=`600 ${sm*.9}px ${FM}`;c.fillStyle=T.acc;c.fillText('HEADLINER',nx+pw+14*u,py+ph*.72)}
@@ -676,11 +681,11 @@ function drawGridWall(c,T,W,H,u,d,list,fallback){const L=56*u,R=W-40*u;decor(c,T
  STAGES.forEach((st,i)=>{c.fillStyle=st.c;rr(c,gx+i*cw+3*u,top,cw-6*u,hh,8*u);c.fill();c.fillStyle='#16213a';c.textAlign='center';c.font=`400 ${fitFont(c,st.name,cw-16*u,28*u,'400',FD,16*u)}px ${FD}`;c.fillText(st.name,gx+i*cw+cw/2,top+hh*.68)});c.textAlign='left';
  for(let m=12*60;m<=22*60;m+=60){const yy=g0+(m-a)*ppm;c.fillStyle=T.grid;c.fillRect(gx,yy,gw,2*u);c.fillStyle=T.sub;c.font=`600 ${22*u}px ${FM}`;c.textAlign='right';c.fillText(String(m/60),gx-12*u,yy+8*u);c.textAlign='left'}
  const any=list.length&&!fallback;
- byDay(d.n).forEach(x=>{const i=STAGES.findIndex(s=>s.k===x.stage);const bx=gx+i*cw+3*u,by=g0+(x.s-a)*ppm+2*u,bw=cw-6*u,bh=(x.e-x.s)*ppm-4*u;const on=picked(x)&&!x.cx;
+ byDay(d.n).filter(x=>!x.cx).forEach(x=>{const i=STAGES.findIndex(s=>s.k===x.stage);const bx=gx+i*cw+3*u,by=g0+(x.s-a)*ppm+2*u,bw=cw-6*u,bh=(x.e-x.s)*ppm-4*u;const on=picked(x)&&!x.cx;
   c.globalAlpha=x.cx?.4:(any&&!on?.3:1);c.fillStyle=STG[x.stage].c;rr(c,bx,by,bw,bh,8*u);c.fill();if(x.ev){c.setLineDash([6*u,5*u]);c.strokeStyle='#16213a';c.lineWidth=2*u;c.stroke();c.setLineDash([])}
   if(on){c.globalAlpha=1;c.strokeStyle=T.acc;c.lineWidth=6*u;rr(c,bx,by,bw,bh,8*u);c.stroke()}
   c.fillStyle='#16213a';const maxS=on?30*u:24*u;const w2=wrap2(c,x.name,bw-14*u,maxS,on?'700':'500',FB,13*u);const lh=w2.s*1.12;const ts=Math.max(13*u,Math.min(19*u,bh*.2));const blockH=w2.lines.length*lh+ts*1.2;let ty=by+(bh-blockH)/2+w2.s*.95;
-  c.font=`${on?'700':'500'} ${w2.s}px ${FB}`;w2.lines.forEach(l=>{c.fillText(l,bx+7*u,ty);ty+=lh});c.font=`600 ${ts}px ${FM}`;c.fillText(x.cx?'출연 취소':`${x.st}–${x.en}`,bx+7*u,ty-lh+w2.s*.2+ts*1.1);
+  c.font=`${on?'700':'500'} ${w2.s}px ${FB}`;w2.lines.forEach(l=>{c.fillText(l,bx+7*u,ty);ty+=lh});c.font=`600 ${ts}px ${FM}`;c.fillText(x.cx?'출연 취소':x.tbc?'시간 조정 예정':`${x.st}–${x.en}`,bx+7*u,ty-lh+w2.s*.2+ts*1.1);
   if(on){c.fillStyle=T.acc;c.font=`700 ${22*u}px ${FB}`;c.textAlign='right';c.fillText('★',bx+bw-6*u,by+24*u);c.textAlign='left'}
   c.globalAlpha=1})}
 $('#wp-save').addEventListener('click',async()=>{await drawWall();const cv=$('#cv');const fn=`burock2026_DAY${S.wp.day}_${S.wp.mode}_${SIZES[S.wp.size].w}x${SIZES[S.wp.size].h}.png`;
